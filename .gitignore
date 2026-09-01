@@ -1,0 +1,38 @@
+# --- Django & Python ---
+# Entornos virtuales (obligatorio ignorar)
+venv/
+.venv/
+env/
+ENV/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Datos sensibles y Configuración ---
+# Variables de entorno (¡AQUÍ VAN TUS CLAVES Y SECRET_KEY!)
+.env
+.env.local
+
+# Configuración local que no debe compartirse
+local_settings.py
+
+# Base de datos local
+db.sqlite3
+db.sqlite3-journal
+
+# --- Archivos de sistema y multimedia ---
+media/
+
+# Logs generados por la aplicación
+*.log
+
+# --- IDEs y Editores ---
+# Configuración específica de VS Code
+.vscode/
+
+# --- Otros ---
+# Archivos temporales de sistemas operativos
+.DS_Store
+Thumbs.db
