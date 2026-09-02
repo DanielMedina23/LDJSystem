@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Eliminar negocio</title>
+</head>
+
+<body>
+
+    <h1>Eliminar negocio</h1>
+
+    <p>
+        ¿Seguro que quieres eliminar el negocio
+        <strong>{{ negocio.nombre }}</strong>?
+    </p>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <button type="submit">
+            Sí, eliminar
+        </button>
+
+    </form>
+
+</body>
+</html>
