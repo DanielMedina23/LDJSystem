@@ -39,4 +39,4 @@ class Horario(models.Model):
     hora_cierre   = models.TimeField("Cierre")
 
     def __str__(self):
-        return 
+        return f"{self.get_dia_semana_display()} : {self.hora_apertura} - {self.hora_cierre}"
