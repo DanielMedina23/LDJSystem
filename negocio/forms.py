@@ -6,7 +6,7 @@ class NegocioForm(forms.ModelForm):
     class Meta:
         model = Negocio
         fields = [
-            'documento'
+            'documento',
             'nombre',
             'direccion',
             'activo',
