@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Reserva - LJDSYSTEM{% endblock %}
+
+{% block content %}
+<h1>Crear Nueva Reserva</h1>
+<hr class="border-light">
+
+<form method="post" class="mt-3">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Guardar Reserva</button>
+    <a href="{% url 'ver_reservas' %}" class="btn btn-secondary">Volver al listado</a>
+</form>
+{% endblock %}

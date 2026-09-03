@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Reservas - LJDSYSTEM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Lista de Reservas</h1>
+    <a href="{% url 'crear_reserva' %}" class="btn btn-primary">+ Nueva Reserva</a>
+</div>
+
+<div class="list-group">
+{% for reserva in reservas %}
+    <div class="list-group-item bg-secondary text-white d-flex justify-content-between align-items-center mb-2 rounded">
+        <div>
+            <h5 class="mb-1">Reserva #{{ reserva.id }}</h5>
+            <p class="mb-1"><strong>Fecha/Hora:</strong> {{ reserva.fecha_hora_inicio }}</p>
+            <small><strong>Estado:</strong> {{ reserva.get_estado_display }}</small>
+        </div>
+        <div>
+            <a href="{% url 'detalle_reserva' reserva.pk %}" class="btn btn-sm btn-info text-white">Ver</a>
+            <a href="{% url 'editar_reserva' reserva.pk %}" class="btn btn-sm btn-warning">Editar</a>
+            <a href="{% url 'eliminar_reserva' reserva.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+        </div>
+    </div>
+{% empty %}
+    <div class="alert alert-info text-center">No hay reservas registradas.</div>
+{% endfor %}
+</div>
+{% endblock %}

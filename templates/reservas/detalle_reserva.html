@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de Reserva #{{ reserva.id }} - LJDSYSTEM{% endblock %}
+
+{% block content %}
+<h1>Detalle de Reserva #{{ reserva.id }}</h1>
+<hr class="border-light">
+
+<div class="card bg-secondary text-white mb-4">
+    <div class="card-body">
+        <p><strong>Usuario:</strong> {{ reserva.usuario|default:"Invitado" }}</p>
+        <p><strong>Mesa:</strong> {{ reserva.mesa|default:"Sin asignar" }}</p>
+        <p><strong>Invitado:</strong> {{ reserva.nombre_invitado|default:"N/A" }} ({{ reserva.telefono_invitado|default:"Sin teléfono" }} - {{ reserva.correo_invitado|default:"Sin correo" }})</p>
+        <p><strong>Fecha/Hora Inicio:</strong> {{ reserva.fecha_hora_inicio }}</p>
+        <p><strong>Fecha/Hora Fin:</strong> {{ reserva.fecha_hora_fin|default:"N/A" }}</p>
+        <p><strong>Número de personas:</strong> {{ reserva.num_personas }}</p>
+        <p><strong>Estado:</strong> {{ reserva.get_estado_display }}</p>
+        <p><strong>Notas:</strong> {{ reserva.notas|default:"Sin notas" }}</p>
+    </div>
+</div>
+
+<a href="{% url 'editar_reserva' reserva.pk %}" class="btn btn-warning">Editar</a>
+<a href="{% url 'eliminar_reserva' reserva.pk %}" class="btn btn-danger">Eliminar</a>
+<a href="{% url 'ver_reservas' %}" class="btn btn-secondary">Volver al listado</a>
+{% endblock %}
