@@ -1,27 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Eliminar negocio</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}Eliminar negocio{% endblock %}
 
-    <h1>Eliminar negocio</h1>
+{% block content %}
+<h1>Eliminar negocio</h1>
 
-    <p>
-        ¿Seguro que quieres eliminar el negocio
-        <strong>{{ negocio.nombre }}</strong>?
-    </p>
+<form method="POST">
+    {% csrf_token %}
+    {{ negocio_form.as_p }}
 
-    <form method="POST">
-
-        {% csrf_token %}
-
-        <button type="submit">
-            Sí, eliminar
-        </button>
-
-    </form>
-
-</body>
-</html>
+    <button type="submit">Eliminar negocio</button>
+</form>
+{% endblock %}

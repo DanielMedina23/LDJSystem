@@ -1,24 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Crear negocio</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}Crear negocio{% endblock %}
 
-    <h1>Crear negocio</h1>
+{% block content %}
+<h1>Crear negocio</h1>
 
-    <form method="POST">
+<form method="POST">
+    {% csrf_token %}
+    {{ negocio_form.as_p }}
 
-        {% csrf_token %}
-
-        {{ negocio_form.as_p }}
-
-        <button type="submit">
-            Crear negocio
-        </button>
-
-    </form>
-
-</body>
-</html>
+    <button type="submit">Crear negocio</button>
+</form>
+{% endblock %}

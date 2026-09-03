@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Negocio{% endblock %}
+
+{% block content %}
+<h1>Información del negocio</h1>
+
+<p><strong>Documento:</strong> {{ negocio.nombre }}</p>
+<p><strong>Nombre:</strong> {{ negocio.descripcion }}</p>
+<p><strong>Dirección:</strong> {{ negocio.direccion }}</p>
+<p><strong>Activo:</strong> {{ negocio.telefono }}</p>
+
+<a href="{% url 'editar_negocio' negocio.id %}">Editar negocio</a>
+{% endblock %}

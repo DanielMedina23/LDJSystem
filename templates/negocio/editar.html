@@ -1,24 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Editar negocio</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %}Editar negocio{% endblock %}
 
-    <h1>Editar negocio</h1>
+{% block content %}
+<h1>Editar negocio</h1>
 
-    <form method="POST">
+<form method="POST">
+    {% csrf_token %}
+    {{ negocio_form.as_p }}
 
-        {% csrf_token %}}
-
-        {{ negocio_form.as_p }}
-
-        <button type="submit">
-            Guardar cambios
-        </button>
-
-    </form>
-
-</body>
-</html>
+    <button type="submit">Editar negocio</button>
+</form>
+{% endblock %}
