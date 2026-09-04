@@ -1,39 +1,22 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}
-Eliminar horario
-{% endblock %}
+{% block title %}Eliminar horario{% endblock %}
 
 {% block content %}
-
 <h1>Eliminar horario</h1>
 
-<p>
-    ¿Estás seguro de que deseas eliminar este horario?
-</p>
+<p>¿Estás seguro de que deseas eliminar este horario?</p>
 
-<p>
-    <strong>Día:</strong> {{ horario.get_dia_semana_display }}
-</p>
+<ul>
+    <li><strong>ID:</strong> {{ horario.id }}</li>
+    <li><strong>Día:</strong> {{ horario.dia }}</li>
+    <li><strong>Apertura:</strong> {{ horario.hora_apertura }}</li>
+    <li><strong>Cierre:</strong> {{ horario.hora_cierre }}</li>
+</ul>
 
-<p>
-    <strong>Hora de apertura:</strong> {{ horario.hora_apertura }}
-</p>
-
-<p>
-    <strong>Hora de cierre:</strong> {{ horario.hora_cierre }}
-</p>
-
-<form method="POST">
+<form method="post">
     {% csrf_token %}
-
-    <button type="submit">
-        Eliminar
-    </button>
-
-    <a href="{% url 'ver_horarios' %}">
-        Cancelar
-    </a>
+    <button type="submit">Sí, eliminar</button>
+    <a href="{% url 'ver_horarios' %}">Cancelar</a>
 </form>
-
-{% endblock %}
+{% endblock 
