@@ -10,7 +10,7 @@ def ver_negocio(request):
 
     return render(
         request,
-        'negocio/negocio.html',
+        'negocio/ver_negocio.html',
         {'negocio': negocio}
     )
 
