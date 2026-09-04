@@ -25,9 +25,7 @@ def agregar_usuario(request):
             usuario.groups.add(grupo_cliente)
 
             # Envio al cliente al login
-            return redirect('agregar_cliente')
-        else:
-            print(formulario.errors)
+            return redirect('login')
 
     else:
 
