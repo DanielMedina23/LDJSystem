@@ -10,7 +10,7 @@ def ver_negocio(request):
 
     return render(
         request,
-        'negocio/negocio.html',
+        'negocio/ver_negocio.html',
         {'negocio': negocio}
     )
 
@@ -29,7 +29,7 @@ def crear_negocio(request):
 
     return render(
         request,
-        'negocio/crear.html',
+        'negocio/crear_negocio.html',
         {'negocio_form': negocio_form}
     )
 
@@ -55,7 +55,7 @@ def editar_negocio(request, id):
 
     return render(
         request,
-        'negocio/editar.html',
+        'negocio/editar_negocio.html',
         {'negocio_form': negocio_form}
     )
 
@@ -71,7 +71,7 @@ def eliminar_negocio(request, id):
 
     return render(
         request,
-        'negocio/eliminar.html',
+        'negocio/eliminar_negocio.html',
         {'negocio': negocio}
     )
 
@@ -83,13 +83,13 @@ def crear_mesa(request):
         form.save()
         return redirect("ver_mesas")
 
-    return render(request, "mesa/crear.html", {"form": form})
+    return render(request, "mesa/crear_mesa.html", {"form": form})
 
 
 def ver_mesas(request):
     mesas = Mesa.objects.all()
 
-    return render(request, "mesa/mesa.html", {"mesas": mesas})
+    return render(request, "mesa/ver_mesas.html", {"mesas": mesas})
 
 
 def editar_mesa(request, id):
@@ -101,7 +101,7 @@ def editar_mesa(request, id):
         form.save()
         return redirect("ver_mesas")
 
-    return render(request, "mesa/editar.html", {"form": form})
+    return render(request, "mesa/editar_mesa.html", {"form": form})
 
 
 def eliminar_mesa(request, id):
@@ -116,7 +116,7 @@ def eliminar_mesa(request, id):
 
     return render(
         request,
-        'mesa/eliminar.html',
+        'mesa/eliminar_mesa.html',
         {'mesa': mesa}
     )
 
@@ -129,7 +129,7 @@ def ver_horarios(request):
 
     return render(
         request,
-        'horario/horario.html',
+        'horario/ver_horarios.html',
         {'horarios': horarios}
     )
 
@@ -151,7 +151,7 @@ def crear_horario(request):
 
     return render(
         request,
-        'horario/crear.html',
+        'horario/crear_horario.html',
         {'horario_form': horario_form}
     )
 
@@ -178,7 +178,7 @@ def editar_horario(request, id):
 
     return render(
         request,
-        'horario/editar.html',
+        'horario/editar_horario.html',
         {'horario_form': horario_form}
     )
 
@@ -195,6 +195,6 @@ def eliminar_horario(request, id):
 
     return render(
         request,
-        'horario/eliminar.html',
+        'horario/eliminar_horario.html',
         {'horario': horario}
     )

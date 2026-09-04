@@ -6,19 +6,19 @@ urlpatterns = [
     path('', views.ver_negocio, name='ver_negocio'),
 
     path(
-        'crear/',
+        'crear_negocio/',
         views.crear_negocio,
         name='crear_negocio'
     ),
 
     path(
-        'editar/<int:id>/',
+        'editar_negocio/<int:id>/',
         views.editar_negocio,
         name='editar_negocio'
     ),
 
     path(
-        'eliminar/<int:id>/',
+        'eliminar_negocio/<int:id>/',
         views.eliminar_negocio,
         name='eliminar_negocio'
     ),
@@ -29,43 +29,43 @@ urlpatterns = [
          '', views.ver_mesas, name='ver_mesas'),
 
     path(
-        'crear/',
+        'crear_mesa/',
         views.crear_mesa,
         name='crear_mesa'
     ),
 
     path(
-        'editar/<int:id>/',
+        'editar_mesa/<int:id>/',
         views.editar_mesa,
         name='editar_mesa'
     ),
 
     path(
-        'eliminar/<int:id>/',
+        'eliminar_mesa/<int:id>/',
         views.eliminar_mesa,
-        name='eliminar_negocio'
+        name='eliminar_mesa'
     ),
 
 #Horario
 
     path(
-         '', views.ver_horarios, name='ver_horarios'),
+         'ver_horarios', views.ver_horarios, name='ver_horarios'),
 
     path(
-        'crear/',
+        'crear_horario/',
         views.crear_horario,
         name='crear_horario'
     ),
 
     path(
-        'editar/<int:id>/',
-        views.editar_mesa,
+        'editar_horario/<int:id>/',
+        views.editar_horario,
         name='editar_horario'
     ),
 
     path(
-        'eliminar/<int:id>/',
-        views.eliminar_mesa,
+        'eliminar_horario/<int:id>/',
+        views.eliminar_horario,
         name='eliminar_horario'
     ),
 
