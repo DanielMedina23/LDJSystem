@@ -137,22 +137,19 @@ def ver_horarios(request):
 def crear_horario(request):
 
     if request.method == 'POST':
+        form = HorarioForm(request.POST)
 
-        horario_form = HorarioForm(request.POST)
-
-        if horario_form.is_valid():
-            horario_form.save()
-
+        if form.is_valid():
+            form.save()
             return redirect('ver_horarios')
 
     else:
-
-        horario_form = HorarioForm()
+        form = HorarioForm()
 
     return render(
         request,
         'horario/crear_horario.html',
-        {'horario_form': horario_form}
+        {'form': form}
     )
 
 
@@ -161,25 +158,19 @@ def editar_horario(request, id):
     horario = get_object_or_404(Horario, id=id)
 
     if request.method == 'POST':
+        form = HorarioForm(request.POST, instance=horario)
 
-        horario_form = HorarioForm(
-            request.POST,
-            instance=horario
-        )
-
-        if horario_form.is_valid():
-            horario_form.save()
-
+        if form.is_valid():
+            form.save()
             return redirect('ver_horarios')
 
     else:
-
-        horario_form = HorarioForm(instance=horario)
+        form = HorarioForm(instance=horario)
 
     return render(
         request,
         'horario/editar_horario.html',
-        {'horario_form': horario_form}
+        {'form': form}
     )
 
 

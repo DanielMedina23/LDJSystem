@@ -3,14 +3,14 @@ from .import views
 
 
 urlpatterns = [
-    path('', views.ver_negocio, name='ver_negocio'),
+    path('ver_negocio/', views.ver_negocio, name='ver_negocio'),
 
     path(
         'crear_negocio/',
         views.crear_negocio,
         name='crear_negocio'
     ),
-
+    
     path(
         'editar_negocio/<int:id>/',
         views.editar_negocio,
@@ -26,7 +26,7 @@ urlpatterns = [
 #mesas
 
     path(
-         '', views.ver_mesas, name='ver_mesas'),
+         'ver_mesas/', views.ver_mesas, name='ver_mesas'),
 
     path(
         'crear_mesa/',
@@ -49,7 +49,7 @@ urlpatterns = [
 #Horario
 
     path(
-         'ver_horarios', views.ver_horarios, name='ver_horarios'),
+         'ver_horarios/', views.ver_horarios, name='ver_horarios'),
 
     path(
         'crear_horario/',
