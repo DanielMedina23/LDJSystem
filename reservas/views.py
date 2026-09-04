@@ -14,18 +14,20 @@ def crear_reserva(request):
         form = ReservaForm()
         
     return render(request, 'reservas/crear_reserva.html', {'form': form})
-
+#////////////////////////////////////////////////////////////////////////////////////////////
 
     #Vista para listar todas las reservas registradas.
 def ver_reservas(request):
     reservas = Reserva.objects.all().order_by('-fecha_hora_inicio')
     return render(request, 'reservas/ver_reservas.html', {'reservas': reservas})
+#////////////////////////////////////////////////////////////////////////////////////////////
 
 
     #Vista para ver el detalle de una reserva específica.
 def detalle_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     return render(request, 'reservas/detalle_reserva.html', {'reserva': reserva})
+#////////////////////////////////////////////////////////////////////////////////////////////
 
 
     #Vista para editar una reserva existente.
@@ -44,6 +46,7 @@ def editar_reserva(request, pk):
         'form': form,
         'reserva': reserva
     })
+    #////////////////////////////////////////////////////////////////////////////////////////////
 
     #Vista para eliminar una reserva.
 def eliminar_reserva(request, pk):
