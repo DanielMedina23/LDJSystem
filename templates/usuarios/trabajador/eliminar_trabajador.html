@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+Eliminar trabajador
+{% endblock %}
+
+{% block content %}
+
+<h1>Eliminar trabajador</h1>
+
+<p>
+    ¿Seguro que deseas eliminar a
+    <strong>{{ trabajador.username }}</strong>?
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <button type="submit">
+        Eliminar
+    </button>
+
+    <a href="{% url 'ver_trabajadores' %}">
+        Cancelar
+    </a>
+</form>
+
+{% endblock %}

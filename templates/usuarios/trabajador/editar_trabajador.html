@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+Editar trabajador
+{% endblock %}
+
+{% block content %}
+
+<h1>Editar trabajador</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ formulario.as_p }}
+
+    <button type="submit">
+        Guardar cambios
+    </button>
+</form>
+
+<a href="{% url 'ver_trabajadores' %}">
+    Cancelar
+</a>
+
+{% endblock %}

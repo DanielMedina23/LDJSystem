@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+Crear trabajador
+{% endblock %}
+
+{% block content %}
+
+<h1>Crear trabajador</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ formulario.as_p }}
+
+    <button type="submit">
+        Crear trabajador
+    </button>
+</form>
+
+<a href="{% url 'inicio' %}">
+    Cancelar
+</a>
+
+{% endblock %}

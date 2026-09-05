@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+Mi perfil
+{% endblock %}
+
+{% block content %}
+
+<h1>Mi perfil</h1>
+
+<p><strong>Usuario:</strong> {{ usuario.username }}</p>
+<p><strong>Email:</strong> {{ usuario.email }}</p>
+<p><strong>Teléfono:</strong> {{ usuario.telefono }}</p>
+
+{% if usuario.dni %}
+    <p><strong>DNI/NIE:</strong> {{ usuario.dni }}</p>
+{% endif %}
+
+<a href="{% url 'editar_perfil' %}">
+    Editar perfil
+</a>
+
+{% endblock %}

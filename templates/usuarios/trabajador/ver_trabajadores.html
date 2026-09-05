@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}
+Trabajadores
+{% endblock %}
+
+{% block content %}
+
+<h1>Trabajadores</h1>
+
+<a href="{% url 'crear_trabajador' %}">
+    Crear trabajador
+</a>
+
+{% if trabajadores %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Usuario</th>
+            <th>Documento</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for trabajador in trabajadores %}
+        <tr>
+            <td>{{ trabajador.username }}</td>
+            <td>{{ trabajador.dni }}</td>
+            <td>{{ trabajador.email }}</td>
+            <td>{{ trabajador.telefono }}</td>
+
+            <td>
+                {% for grupo in trabajador.groups.all %}
+                {{ grupo.name }}
+                {% endfor %}
+            </td>
+            <td>
+                <a href="{% url 'editar_trabajador' trabajador.id %}">
+                    Editar
+                </a>
+
+                <a href="{% url 'eliminar_trabajador' trabajador.id %}">
+                    Eliminar
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+{% else %}
+
+<p>No hay trabajadores registrados.</p>
+
+{% endif %}
+
+{% endblock %}
