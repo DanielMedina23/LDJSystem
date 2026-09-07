@@ -6,202 +6,112 @@ Inicio | LDJSystem
 
 {% block content %}
 
-<section class="bg-dark text-white rounded-3 shadow-sm p-4 p-md-5 mb-5">
-
-    <div class="row align-items-center py-4">
-
+<!-- HERO PRINCIPAL -->
+<section class="bg-dark text-white rounded-3 shadow-sm p-4 p-md-5 mb-5 border border-secondary">
+    <div class="row align-items-center py-2 py-md-4">
         <div class="col-lg-8">
-
-            <!-- Identificación del establecimiento -->
-            <span class="badge text-bg-success mb-3">
+            <span class="badge text-bg-success mb-3 fs-6">
                 Restaurante · Bar en León
             </span>
-
-            <!-- Mensaje principal -->
             <h1 class="display-4 fw-bold mb-3">
                 Tu mesa te está esperando
             </h1>
-
             <p class="fs-5 text-white-50 mb-4">
-                Reserva tu mesa de forma rápida y sencilla.
-                Consulta nuestros horarios y disfruta de tu visita
-                sin preocuparte por la disponibilidad.
+                Reserva tu mesa de forma rápida y sencilla. Consulta nuestros horarios y disfruta de tu visita sin preocuparte por la disponibilidad.
             </p>
 
-
-            <!-- Acciones principales -->
-            <div class="d-flex flex-wrap gap-2">
-
-                <!-- Acción principal -->
-                <a href="{% url 'crear_reserva' %}" class="btn btn-success btn-lg fw-semibold">
+            <!-- Acciones adaptables para móviles -->
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <a href="{% url 'crear_reserva' %}" class="btn btn-success btn-lg fw-semibold text-center">
                     Reservar mesa
                 </a>
-
-                <!-- Acción secundaria -->
-                <a href="{% url 'ver_negocio' %}" class="btn btn-outline-light btn-lg">
+                <a href="{% url 'ver_negocio' %}" class="btn btn-outline-light btn-lg text-center">
                     Conocer el local
                 </a>
-
             </div>
-
         </div>
-
     </div>
-
 </section>
 
-
-
-<!-- =========================================================
-     SECCIÓN INFORMATIVA
-     Presenta los principales servicios para el cliente.
-========================================================== -->
+<!-- SECCIÓN INFORMATIVA (TARJETAS) -->
 <section class="mb-5">
-
-    <!-- Encabezado de la sección -->
     <div class="text-center mb-4">
-
-        <h2 class="fw-bold">
-            Organiza tu visita
-        </h2>
-
-        <p class="text-secondary">
-            Todo lo que necesitas antes de venir.
-        </p>
-
+        <h2 class="fw-bold">Organiza tu visita</h2>
+        <p class="text-white-50">Todo lo que necesitas antes de venir.</p>
     </div>
-
 
     <div class="row g-4">
-
-
-        <!-- ================= RESERVAS ================= -->
-        <div class="col-md-4">
-
-            <div class="card border-0 shadow-sm h-100">
-
-                <div class="card-body p-4">
-
-                    <!-- Identificador -->
-                    <span class="badge text-bg-success mb-3">
-                        Reservas
-                    </span>
-
-                    <h3 class="h5 fw-bold">
-                        Reserva fácilmente
-                    </h3>
-
-                    <p class="text-secondary">
-                        Selecciona la fecha, la hora y el número
-                        de personas para solicitar tu mesa.
-                    </p>
-
-                    <a href="{% url 'crear_reserva' %}" class="btn btn-outline-success">
+        <!-- RESERVAS -->
+        <div class="col-12 col-md-4">
+            <div class="card bg-secondary text-white border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge text-bg-success mb-3">Reservas</span>
+                        <h3 class="h5 fw-bold">Reserva fácilmente</h3>
+                        <p class="card-text text-white-50 small">
+                            Selecciona la fecha, la hora y el número de personas para solicitar tu mesa.
+                        </p>
+                    </div>
+                    <a href="{% url 'crear_reserva' %}" class="btn btn-outline-light mt-3 w-100 fw-bold">
                         Reservar mesa
                     </a>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
-        <!-- ================= HORARIOS ================= -->
-        <div class="col-md-4">
-
-            <div class="card border-0 shadow-sm h-100">
-
-                <div class="card-body p-4">
-
-                    <span class="badge text-bg-success mb-3">
-                        Horarios
-                    </span>
-
-                    <h3 class="h5 fw-bold">
-                        Consulta cuándo visitarnos
-                    </h3>
-
-                    <p class="text-secondary">
-                        Revisa nuestros días y horarios de atención
-                        antes de realizar tu reserva.
-                    </p>
-
-                    <a href="{% url 'ver_horarios' %}" class="btn btn-outline-success">
+        <!-- HORARIOS -->
+        <div class="col-12 col-md-4">
+            <div class="card bg-secondary text-white border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge text-bg-success mb-3">Horarios</span>
+                        <h3 class="h5 fw-bold">Consulta cuándo visitarnos</h3>
+                        <p class="card-text text-white-50 small">
+                            Revisa nuestros días y horarios de atención antes de realizar tu reserva.
+                        </p>
+                    </div>
+                    <a href="{% url 'ver_horarios' %}" class="btn btn-outline-light mt-3 w-100 fw-bold">
                         Ver horarios
                     </a>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
-        <!-- ================= NEGOCIO ================= -->
-        <div class="col-md-4">
-
-            <div class="card border-0 shadow-sm h-100">
-
-                <div class="card-body p-4">
-
-                    <span class="badge text-bg-success mb-3">
-                        Nuestro local
-                    </span>
-
-                    <h3 class="h5 fw-bold">
-                        Conoce nuestro espacio
-                    </h3>
-
-                    <p class="text-secondary">
-                        Consulta la información del restaurante
-                        y conoce mejor el lugar antes de visitarnos.
-                    </p>
-
-                    <a href="{% url 'ver_negocio' %}" class="btn btn-outline-success">
+        <!-- NUESTRO LOCAL -->
+        <div class="col-12 col-md-4">
+            <div class="card bg-secondary text-white border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge text-bg-success mb-3">Nuestro local</span>
+                        <h3 class="h5 fw-bold">Conoce nuestro espacio</h3>
+                        <p class="card-text text-white-50 small">
+                            Consulta la información del restaurante y conoce mejor el lugar antes de visitarnos.
+                        </p>
+                    </div>
+                    <a href="{% url 'ver_negocio' %}" class="btn btn-outline-light mt-3 w-100 fw-bold">
                         Ver negocio
                     </a>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </section>
 
-<section class="bg-dark text-white rounded-3 shadow-sm p-4 p-md-5">
-
+<!-- BANNER DE LLAMADA A LA ACCIÓN INFERIOR -->
+<section class="bg-dark text-white rounded-3 shadow-sm p-4 p-md-5 border border-secondary mb-4">
     <div class="row align-items-center">
-
-        <div class="col-md-8">
-
-            <h2 class="fw-bold mb-2">
-                ¿Ya sabes cuándo quieres venir?
-            </h2>
-
+        <div class="col-12 col-md-8 text-center text-md-start">
+            <h2 class="fw-bold mb-2">¿Ya sabes cuándo quieres venir?</h2>
             <p class="text-white-50 mb-md-0">
                 Haz tu reserva y asegura tu mesa antes de visitarnos.
             </p>
-
         </div>
-
-
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-
-            <a href="{% url 'crear_reserva' %}" class="btn btn-success btn-lg fw-semibold">
+        <div class="col-12 col-md-4 text-center text-md-end mt-3 mt-md-0">
+            <a href="{% url 'crear_reserva' %}" class="btn btn-success btn-lg fw-semibold w-100 w-md-auto">
                 Reservar mesa
             </a>
-
         </div>
-
     </div>
-
 </section>
-
 
 {% endblock %}

@@ -16,3 +16,8 @@ class ReservaForm(forms.ModelForm):
             'fecha_hora_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'notas': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})

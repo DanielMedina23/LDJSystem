@@ -20,8 +20,8 @@ class Reserva(models.Model):
     ]
 
     usuario_creador         = models.ForeignKey(Usuario, on_delete=models.PROTECT, null=True, blank=True)
-    mesa                    = models.ForeignKey(Mesa, on_delete = models.PROTECT, null = True, blank = True) 
-    nombre_cliente          = models.CharField(max_length=150)
+    mesa                    = models.ForeignKey(Mesa, on_delete=models.PROTECT, null=True, blank=True) 
+    nombre_cliente          = models.CharField(max_length=150, default="Cliente")
     telefono_cliente        = models.CharField(max_length=20, blank=True, null=True)
     correo_cliente          = models.EmailField(blank=True, null=True)
     fecha_hora_inicio       = models.DateTimeField()
@@ -39,11 +39,17 @@ class Reserva(models.Model):
             
         super().save(*args, **kwargs)
 
-     # Comprueba si la reserva está en curso y ya ha rebasado su hora de fin estimada
-    def tiempo_expirado(self):
-        if self.fecha_hora_fin and self.estado == 'en_curso':
+    @property
+    def es_expirada(self):
+        """Devuelve True si la hora fin ya pasó y el estado no es finalizada, cancelada ni rechazada."""
+        estados_excluidos = ['finalizada', 'cancelada', 'rechazada']
+        if self.fecha_hora_fin and self.estado not in estados_excluidos:
             return timezone.now() > self.fecha_hora_fin
         return False
+
+    def tiempo_expirado(self):
+        """Método de compatibilidad hacia atrás."""
+        return self.es_expirada
 
     def __str__(self):
         return f"Reserva {self.id} - {self.nombre_cliente} ({self.fecha_hora_inicio})"

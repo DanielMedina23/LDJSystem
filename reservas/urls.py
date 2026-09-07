@@ -7,4 +7,7 @@ urlpatterns = [
     path('<int:pk>/', views.detalle_reserva, name='detalle_reserva'),
     path('<int:pk>/editar/', views.editar_reserva, name='editar_reserva'),
     path('<int:pk>/eliminar/', views.eliminar_reserva, name='eliminar_reserva'),
+    path('reserva/<int:pk>/confirmar/', views.confirmar_reserva, name='confirmar_reserva'),
+    path('reserva/<int:pk>/finalizar/', views.finalizar_reserva, name='finalizar_reserva'),
+    path('reservas/<int:pk>/cambiar-estado/', views.cambiar_estado_reserva, name='cambiar_estado_reserva'),
 ]

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Finalizar Reserva #{{ reserva.id }} - LDJSystem{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+    <h1 class="h2 mb-0">Finalizar Reserva #{{ reserva.id }}</h1>
+    <a href="{% url 'ver_reservas' %}" class="btn btn-secondary">← Volver al listado</a>
+</div>
+
+<div class="card bg-secondary text-white mb-4 shadow-sm border-0">
+    <div class="card-body p-3 p-md-4">
+        <h3 class="card-title text-success h4 mb-3 border-bottom border-dark pb-2">
+            Marcar como Finalizada
+        </h3>
+
+        <p class="fs-6 mb-3">
+            ¿Confirmas que deseas marcar la reserva de <strong class="text-break">{{ reserva.nombre_cliente }}</strong> como finalizada? Esto liberará la mesa y guardará el registro en el historial.
+        </p>
+
+        <!-- Resumen informativo de la reserva -->
+        <div class="bg-dark p-3 rounded mb-4 border border-dark">
+            <ul class="list-unstyled mb-0 small">
+                <li class="mb-1 text-break"><strong>Cliente:</strong> {{ reserva.nombre_cliente }}</li>
+                <li class="mb-1"><strong>Fecha/Hora Inicio:</strong> {{ reserva.fecha_hora_inicio|date:"d/m/Y H:i" }}</li>
+                <li class="mb-1"><strong>Comensales:</strong> {{ reserva.num_personas }} personas</li>
+                {% if reserva.mesa %}
+                    <li><strong>Mesa:</strong> {{ reserva.mesa }}</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <form method="post" class="d-flex flex-column flex-sm-row gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success fw-bold flex-fill flex-sm-grow-0">Sí, finalizar reserva</button>
+            <a href="{% url 'detalle_reserva' reserva.pk %}" class="btn btn-dark flex-fill flex-sm-grow-0">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
