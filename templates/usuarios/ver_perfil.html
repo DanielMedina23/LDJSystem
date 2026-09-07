@@ -1,23 +1,141 @@
 {% extends "base.html" %}
 
 {% block title %}
-Mi perfil
+Mi perfil | LDJSystem
 {% endblock %}
 
 {% block content %}
 
-<h1>Mi perfil</h1>
+<!--
+    Contenedor principal del perfil.
+    Centramos la tarjeta y limitamos su ancho
+    para mejorar la presentación.
+-->
+<div class="row justify-content-center">
 
-<p><strong>Usuario:</strong> {{ usuario.username }}</p>
-<p><strong>Email:</strong> {{ usuario.email }}</p>
-<p><strong>Teléfono:</strong> {{ usuario.telefono }}</p>
+    <div class="col-md-8 col-lg-6">
 
-{% if usuario.dni %}
-    <p><strong>DNI/NIE:</strong> {{ usuario.dni }}</p>
-{% endif %}
+        <!-- Tarjeta principal del perfil -->
+        <div class="card border-0 shadow-sm">
 
-<a href="{% url 'editar_perfil' %}">
-    Editar perfil
-</a>
+            <!-- Encabezado -->
+            <div class="card-header bg-dark text-white border-0 p-4">
+
+                <h1 class="h3 fw-bold mb-1">
+                    Mi perfil
+                </h1>
+
+                <p class="text-white-50 mb-0">
+                    Consulta la información asociada a tu cuenta.
+                </p>
+
+            </div>
+
+
+            <!-- Información del usuario -->
+            <div class="card-body p-4">
+
+                <!-- Nombre de usuario -->
+                <div class="mb-3">
+
+                    <p class="text-secondary small mb-1">
+                        Usuario
+                    </p>
+
+                    <p class="fw-semibold mb-0">
+                        {{ usuario.username }}
+                    </p>
+
+                </div>
+
+                <hr>
+
+
+                <!-- Email -->
+                <div class="mb-3">
+
+                    <p class="text-secondary small mb-1">
+                        Email
+                    </p>
+
+                    <p class="fw-semibold mb-0">
+                        {{ usuario.email }}
+                    </p>
+
+                </div>
+
+                <hr>
+
+
+                <!-- Teléfono -->
+                <div class="mb-3">
+
+                    <p class="text-secondary small mb-1">
+                        Teléfono
+                    </p>
+
+                    <p class="fw-semibold mb-0">
+                        {{ usuario.telefono }}
+                    </p>
+
+                </div>
+
+
+                <!--
+                    El DNI/NIE solamente se muestra
+                    cuando el usuario tiene este dato registrado.
+                -->
+                {% if usuario.dni %}
+
+                <hr>
+
+                <div class="mb-3">
+
+                    <p class="text-secondary small mb-1">
+                        DNI/NIE
+                    </p>
+
+                    <p class="fw-semibold mb-0">
+                        {{ usuario.dni }}
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- Acciones -->
+            <div class="card-footer bg-white border-0 p-4 pt-0">
+
+                <div class="d-grid">
+
+                    <!--
+                        Este botón no redirecciona a otra página.
+                        Abre el modal editarPerfilModal.
+                    -->
+                    <button type="button" class="btn btn-success fw-semibold" data-bs-toggle="modal"
+                        data-bs-target="#editarPerfilModal">
+                        Editar perfil
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!--
+    Incluimos el formulario de edición como modal.
+    El formulario recibido desde la vista ver_perfil
+    estará disponible también dentro de este template.
+-->
+{% include "usuarios/editar_perfil.html" %}
 
 {% endblock %}

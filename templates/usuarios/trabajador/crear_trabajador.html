@@ -1,25 +1,204 @@
 {% extends "base.html" %}
 
 {% block title %}
-Crear trabajador
+Crear trabajador | LDJSystem
 {% endblock %}
 
 {% block content %}
 
-<h1>Crear trabajador</h1>
+<div class="row justify-content-center">
 
-<form method="POST">
-    {% csrf_token %}
+    <div class="col-md-9 col-lg-7">
 
-    {{ formulario.as_p }}
+        <!-- Tarjeta principal -->
+        <div class="card border-0 shadow-sm">
 
-    <button type="submit">
-        Crear trabajador
-    </button>
-</form>
+            <div class="card-header bg-dark text-white border-0 p-4">
 
-<a href="{% url 'inicio' %}">
-    Cancelar
-</a>
+                <h1 class="h3 fw-bold mb-1">
+                    Crear trabajador
+                </h1>
+
+                <p class="text-white-50 mb-0">
+                    Registra una nueva cuenta para el personal del establecimiento.
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 FORMULARIO
+            ================================================== -->
+            <div class="card-body p-4">
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+
+                    <!-- Nombre de usuario -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.username.id_for_label }}" class="form-label fw-semibold">
+                            Nombre de usuario
+                        </label>
+
+                        {{ formulario.username }}
+
+                        {% if formulario.username.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.username.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- DNI / NIE -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.dni.id_for_label }}" class="form-label fw-semibold">
+                            DNI/NIE
+                        </label>
+
+                        {{ formulario.dni }}
+
+                        {% if formulario.dni.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.dni.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Email -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.email.id_for_label }}" class="form-label fw-semibold">
+                            Email
+                        </label>
+
+                        {{ formulario.email }}
+
+                        {% if formulario.email.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.email.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Teléfono -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.telefono.id_for_label }}" class="form-label fw-semibold">
+                            Teléfono
+                        </label>
+
+                        {{ formulario.telefono }}
+
+                        {% if formulario.telefono.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.telefono.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Rol -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.grupo.id_for_label }}" class="form-label fw-semibold">
+                            Rol
+                        </label>
+
+                        {{ formulario.grupo }}
+
+                        {% if formulario.grupo.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.grupo.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Contraseña -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.password1.id_for_label }}" class="form-label fw-semibold">
+                            Contraseña
+                        </label>
+
+                        {{ formulario.password1 }}
+
+                        {% if formulario.password1.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.password1.errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="form-text">
+                            Mínimo 8 caracteres. Evita contraseñas comunes o completamente numéricas.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Confirmar contraseña -->
+                    <div class="mb-4">
+
+                        <label for="{{ formulario.password2.id_for_label }}" class="form-label fw-semibold">
+                            Confirmar contraseña
+                        </label>
+
+                        {{ formulario.password2 }}
+
+                        {% if formulario.password2.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.password2.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Errores generales del formulario -->
+                    {% if formulario.non_field_errors %}
+
+                    <div class="alert alert-danger">
+                        {{ formulario.non_field_errors }}
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- ACCIONES-->
+                    <div class="d-flex gap-2">
+
+                        <!-- Acción principal -->
+                        <button type="submit" class="btn btn-success fw-semibold">
+                            Crear trabajador
+                        </button>
+
+                        <!-- Vuelve al listado sin crear el trabajador -->
+                        <a href="{% url 'ver_trabajadores' %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 {% endblock %}

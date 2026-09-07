@@ -1,83 +1,144 @@
 <div class="container mt-3">
-  <nav class="navbar navbar-expand-lg bg-body-tertiary rounded shadow-sm px-3">
+
+  <!-- Navbar principal de LDJSystem -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark rounded shadow-sm px-3">
+
     <div class="container-fluid">
 
-      <a class="navbar-brand fw-bold" href="{% url 'inicio' %}">
+      <!--
+        Marca / Logo del sistema.
+        Al pulsarlo, el usuario vuelve a la página de inicio.
+      -->
+      <a class="navbar-brand fw-bold text-white" href="{% url 'inicio' %}">
         LDJSystem
       </a>
 
-      <div class="d-flex align-items-center gap-2">
+      <!--
+        Botón que aparece en pantallas pequeñas.
+        Permite desplegar u ocultar el menú de navegación.
+      -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarLDJ"
+        aria-controls="navbarLDJ" aria-expanded="false" aria-label="Mostrar navegación">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        {% if request.user.is_authenticated %}
+      <!--
+        Contenedor colapsable del menú.
+        En pantallas grandes se muestra normalmente.
+        En pantallas pequeñas depende del botón anterior.
+      -->
+      <div class="collapse navbar-collapse" id="navbarLDJ">
 
+        <!--
+          ms-auto empuja el menú hacia la derecha.
+          align-items-lg-center centra verticalmente los elementos.
+          gap-lg-2 agrega separación entre ellos en pantallas grandes.
+        -->
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+
+          {% if request.user.is_authenticated %}
+
+          <!--
+              Si el usuario es superusuario,
+              puede acceder a la gestión de trabajadores.
+            -->
           {% if request.user.is_superuser %}
 
-            <a class="btn btn-outline-primary"
-               href="{% url 'ver_trabajadores' %}">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'ver_trabajadores' %}">
               Trabajadores
             </a>
-
-            <a class="btn btn-primary"
-               href="{% url 'crear_trabajador' %}">
-              Agregar trabajador
-            </a>
+          </li>
 
           {% else %}
 
-            {% for grupo in request.user.groups.all %}
+          <!--
+                Si no es superusuario, revisamos sus grupos.
+                Solo el grupo Administrador puede ver
+                la sección de trabajadores.
+              -->
+          {% for grupo in request.user.groups.all %}
 
-              {% if grupo.name == 'Administrador' %}
+          {% if grupo.name == 'Administrador' %}
 
-                <a class="btn btn-outline-primary"
-                   href="{% url 'ver_trabajadores' %}">
-                  Trabajadores
-                </a>
-
-                <a class="btn btn-primary"
-                   href="{% url 'crear_trabajador' %}">
-                  Agregar empleado
-                </a>
-
-              {% endif %}
-
-            {% endfor %}
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'ver_trabajadores' %}">
+              Trabajadores
+            </a>
+          </li>
 
           {% endif %}
 
-          <a class="btn btn-outline-secondary"
-             href="{% url 'ver_perfil' %}">
-            Mi perfil
-          </a>
+          {% endfor %}
 
-          <form method="POST"
-                action="{% url 'logout' %}"
-                class="m-0">
+          {% endif %}
 
-            {% csrf_token %}
+          <!--
+              Todo usuario autenticado puede acceder
+              a su propio perfil.
+            -->
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'ver_perfil' %}">
+              Mi perfil
+            </a>
+          </li>
 
-            <button type="submit"
-                    class="btn btn-outline-danger">
-              Cerrar sesión
+          <!--
+              Cierre de sesión mediante POST.
+              Se utiliza formulario porque cerrar sesión
+              modifica el estado de autenticación.
+            -->
+          <li class="nav-item">
+
+            <form method="POST" action="{% url 'logout' %}" class="m-0">
+
+              {% csrf_token %}
+
+              <button type="submit" class="btn btn-outline-light">
+                Cerrar sesión
+              </button>
+
+            </form>
+
+          </li>
+
+          {% else %}
+
+          <!--
+              Si el usuario NO ha iniciado sesión,
+              mostramos las opciones públicas.
+            -->
+
+          <!--
+              Abre el modal de inicio de sesión.
+              data-bs-target debe coincidir con
+              el id del modal: loginModal.
+            -->
+          <li class="nav-item">
+            <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#loginModal">
+              Iniciar sesión
             </button>
+          </li>
 
-          </form>
+          <!--
+              Abre el modal de registro de cliente.
+              data-bs-target debe coincidir con
+              el id del modal: registroModal.
+            -->
+          <li class="nav-item">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#registroModal">
+              Registrarse
+            </button>
+          </li>
 
-        {% else %}
+          {% endif %}
 
-          <a class="btn btn-outline-primary"
-             href="{% url 'login' %}">
-            Iniciar sesión
-          </a>
-
-          <a class="btn btn-primary"
-             href="{% url 'agregar_cliente' %}">
-            Registrarse
-          </a>
-
-        {% endif %}
+        </ul>
 
       </div>
 
     </div>
+
   </nav>
+
 </div>

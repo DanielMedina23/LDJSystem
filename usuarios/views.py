@@ -27,8 +27,8 @@ def agregar_usuario(request):
             # Agrego el usuario recién registrado al grupo Cliente
             usuario.groups.add(grupo_cliente)
 
-            # Envio al cliente al login
-            return redirect('login')
+            # Envio al cliente a la ventana principal
+            return redirect('inicio')
 
     else:
 
@@ -37,7 +37,8 @@ def agregar_usuario(request):
         formulario = RegistroClienteForm()
 
     # Envío el formulario al template para poder mostrarlo
-    return render(request, 'usuarios/cliente/agregar_cliente.html', {'formulario': formulario})
+    return render(request, 'inicio.html', {'formulario' : formulario})
+    # return render(request, 'usuarios/cliente/agregar_cliente.html', {'formulario': formulario})
 
 #FIN CLIENTES
 
@@ -166,8 +167,12 @@ def eliminar_trabajador(request, id):
 def ver_perfil(request):
 
     usuario = request.user
+    # Creamos el formulario con los datos actuales
+    # del usuario que tiene la sesión iniciada.
+    formulario = EditarPerfilForm(instance=usuario)
 
-    return render(request, 'usuarios/ver_perfil.html', {'usuario': usuario})
+    return render(request, 'usuarios/ver_perfil.html', {'usuario': usuario,
+                                                        'formulario' : formulario})
 
 #Editar Perfil
 @login_required
@@ -187,7 +192,8 @@ def editar_perfil(request):
 
         formulario = EditarPerfilForm(instance = usuario) # Edito al usuario que tiene actualmente la sesión iniciada.
 
-    return render(request, 'usuarios/editar_perfil.html', {'formulario': formulario})
+    return render(request, 'usuarios/ver_perfil.html', {'usuario' : usuario,
+                                                        'formulario': formulario})
 
 #AUTENTICACION
 #Iniciar Sesion

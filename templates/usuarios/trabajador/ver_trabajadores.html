@@ -1,63 +1,198 @@
 {% extends "base.html" %}
 
 {% block title %}
-Trabajadores
+Trabajadores | LDJSystem
 {% endblock %}
 
 {% block content %}
 
-<h1>Trabajadores</h1>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<a href="{% url 'crear_trabajador' %}">
-    Crear trabajador
-</a>
+    <div>
+
+        <h1 class="h2 fw-bold mb-1">
+            Trabajadores
+        </h1>
+
+        <p class="text-secondary mb-0">
+            Gestiona las cuentas del personal del establecimiento.
+        </p>
+
+    </div>
+
+    <!-- Acción principal -->
+    <div>
+
+        <a href="{% url 'crear_trabajador' %}" class="btn btn-success fw-semibold">
+            Crear trabajador
+        </a>
+
+    </div>
+
+</div>
+
 
 {% if trabajadores %}
 
-<table>
-    <thead>
-        <tr>
-            <th>Usuario</th>
-            <th>Documento</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
+<!-- =========================================================
+     LISTADO DE TRABAJADORES
+========================================================== -->
+<div class="card border-0 shadow-sm">
 
-    <tbody>
+    <!-- Encabezado visual de la tarjeta -->
+    <div class="card-header bg-dark text-white border-0 p-3">
 
-        {% for trabajador in trabajadores %}
-        <tr>
-            <td>{{ trabajador.username }}</td>
-            <td>{{ trabajador.dni }}</td>
-            <td>{{ trabajador.email }}</td>
-            <td>{{ trabajador.telefono }}</td>
+        <h2 class="h5 fw-bold mb-0">
+            Personal registrado
+        </h2>
 
-            <td>
-                {% for grupo in trabajador.groups.all %}
-                {{ grupo.name }}
+    </div>
+
+
+    <!--
+        table-responsive permite desplazamiento horizontal
+        en pantallas pequeñas.
+    -->
+    <div class="table-responsive">
+
+        <table class="table table-hover align-middle mb-0">
+
+            <!-- Encabezados de la tabla -->
+            <thead class="table-light">
+
+                <tr>
+
+                    <th scope="col">
+                        Usuario
+                    </th>
+
+                    <th scope="col">
+                        Documento
+                    </th>
+
+                    <th scope="col">
+                        Email
+                    </th>
+
+                    <th scope="col">
+                        Teléfono
+                    </th>
+
+                    <th scope="col">
+                        Rol
+                    </th>
+
+                    <th scope="col" class="text-end">
+                        Acciones
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <!-- Registros -->
+            <tbody>
+
+                {% for trabajador in trabajadores %}
+
+                <tr>
+
+                    <!-- Usuario -->
+                    <td class="fw-semibold">
+                        {{ trabajador.username }}
+                    </td>
+
+
+                    <!-- Documento -->
+                    <td>
+                        {{ trabajador.dni }}
+                    </td>
+
+
+                    <!-- Email -->
+                    <td>
+                        {{ trabajador.email }}
+                    </td>
+
+
+                    <!-- Teléfono -->
+                    <td>
+                        {{ trabajador.telefono }}
+                    </td>
+
+
+                    <!-- Rol -->
+                    <td>
+
+                        {% for grupo in trabajador.groups.all %}
+
+                        <span class="badge text-bg-secondary">
+                            {{ grupo.name }}
+                        </span>
+
+                        {% endfor %}
+
+                    </td>
+
+
+                    <!-- Acciones -->
+                    <td class="text-end">
+
+                        <div class="d-flex justify-content-end gap-2">
+
+                            <!-- Editar -->
+                            <a href="{% url 'editar_trabajador' trabajador.id %}"
+                                class="btn btn-outline-success btn-sm">
+                                Editar
+                            </a>
+
+
+                            <!-- Eliminar -->
+                            <a href="{% url 'eliminar_trabajador' trabajador.id %}"
+                                class="btn btn-outline-danger btn-sm">
+                                Eliminar
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
                 {% endfor %}
-            </td>
-            <td>
-                <a href="{% url 'editar_trabajador' trabajador.id %}">
-                    Editar
-                </a>
 
-                <a href="{% url 'eliminar_trabajador' trabajador.id %}">
-                    Eliminar
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
+            </tbody>
 
-    </tbody>
-</table>
+        </table>
+
+    </div>
+
+</div>
+
 
 {% else %}
 
-<p>No hay trabajadores registrados.</p>
+<div class="card border-0 shadow-sm">
+
+    <div class="card-body text-center p-5">
+
+        <h2 class="h4 fw-bold mb-2">
+            No hay trabajadores registrados
+        </h2>
+
+        <p class="text-secondary mb-4">
+            Crea la primera cuenta de personal para comenzar
+            a gestionar el establecimiento.
+        </p>
+
+        <a href="{% url 'crear_trabajador' %}" class="btn btn-success fw-semibold">
+            Crear trabajador
+        </a>
+
+    </div>
+
+</div>
 
 {% endif %}
 
