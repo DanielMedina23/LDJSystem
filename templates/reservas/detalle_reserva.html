@@ -27,19 +27,13 @@
                 <p class="mb-2"><strong>Fecha/Hora Fin:</strong> {{ reserva.fecha_hora_fin|date:"d/m/Y H:i"|default:"N/A" }}</p>
                 <p class="mb-2"><strong>Número de personas:</strong> {{ reserva.num_personas }}</p>
                 
-                <!-- Estado interactivo con selector rápido -->
-                <div class="mb-2">
-                    <strong>Estado:</strong>
-                    <form action="{% url 'cambiar_estado_reserva' reserva.pk %}" method="post" class="d-inline-flex flex-wrap gap-2 align-items-center mt-1">
-                        {% csrf_token %}
-                        <select name="estado" class="form-select form-select-sm bg-dark text-white border-secondary w-auto">
-                            {% for code, label in reserva.ESTADOS %}
-                                <option value="{{ code }}" {% if reserva.estado == code %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-outline-light" title="Guardar nuevo estado">Actualizar</button>
-                    </form>
-                </div>
+                <!-- Estado en modo solo lectura -->
+                <p class="mb-2">
+                    <strong>Estado:</strong> 
+                    <span class="badge bg-dark text-white border border-secondary ms-1 fs-6 fw-normal">
+                        {{ reserva.get_estado_display }}
+                    </span>
+                </p>
             </div>
         </div>
 

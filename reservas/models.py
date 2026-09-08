@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator
 from usuarios.models import Usuario
 from negocio.models import Mesa
 
-# Create your models here.
+
 class Reserva(models.Model):
 
     ESTADOS = [
@@ -32,11 +32,9 @@ class Reserva(models.Model):
     token_confirmacion      = models.CharField(max_length=100, blank=True, null=True)
     expiracion_confirmacion = models.DateTimeField(blank=True, null=True)
     
-    # Si la fecha/hora de inicio está definida pero la de fin está vacía, calculamos 2 horas automáticamente
     def save(self, *args, **kwargs):
         if self.fecha_hora_inicio and not self.fecha_hora_fin:
             self.fecha_hora_fin = self.fecha_hora_inicio + timedelta(hours=2)
-            
         super().save(*args, **kwargs)
 
     @property

@@ -9,7 +9,10 @@ def crear_reserva(request):
     if request.method == 'POST':
         form = ReservaForm(request.POST)
         if form.is_valid():
-            reserva = form.save()
+            reserva = form.save(commit=False)
+            if request.user.is_authenticated:
+                reserva.usuario_creador = request.user
+            reserva.save()
             messages.success(request, f"¡La reserva #{reserva.id} se ha creado con éxito!")
             return redirect('ver_reservas')
     else:
@@ -117,16 +120,3 @@ def finalizar_reserva(request, pk):
         return redirect('ver_reservas')
         
     return render(request, 'reservas/finalizar_reserva.html', {'reserva': reserva})
-
-# ////////////////////////////////////////////////////////////////////////////////////////////
-
-# Vista rápida para cambiar el estado desde la vista de detalles.
-def cambiar_estado_reserva(request, pk):
-    reserva = get_object_or_404(Reserva, pk=pk)
-    if request.method == 'POST':
-        nuevo_estado = request.POST.get('estado')
-        if nuevo_estado in dict(Reserva.ESTADOS):
-            reserva.estado = nuevo_estado
-            reserva.save()
-            messages.success(request, f"¡El estado de la reserva #{reserva.id} se actualizó con éxito!")
-    return redirect('detalle_reserva', pk=reserva.pk)
