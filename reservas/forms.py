@@ -1,10 +1,14 @@
+from datetime import timedelta
 from django import forms
+from django.utils import timezone
 from .models import Reserva
+
 
 class ReservaForm(forms.ModelForm):
     class Meta:
         model = Reserva
         fields = [
+            'mesa',
             'nombre_cliente',
             'telefono_cliente',
             'correo_cliente',
@@ -19,5 +23,38 @@ class ReservaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
+        for name, field in self.fields.items():
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({'class': 'form-select'})
+            else:
+                field.widget.attrs.update({'class': 'form-control'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        mesa = cleaned_data.get('mesa')
+        inicio = cleaned_data.get('fecha_hora_inicio')
+
+        # 1. Validar que la fecha/hora no sea en el pasado
+        if inicio and inicio < timezone.now():
+            self.add_error('fecha_hora_inicio', 'No puedes realizar una reserva en una fecha u hora pasada.')
+
+        # 2. Validar colisiones de horario en la misma mesa
+        if mesa and inicio:
+            fin = inicio + timedelta(hours=2)
+            estados_activos = ['pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
+            
+            colisiones = Reserva.objects.filter(
+                mesa=mesa,
+                estado__in=estados_activos,
+                fecha_hora_inicio__lt=fin,
+                fecha_hora_fin__gt=inicio
+            )
+
+            # Si estamos editando, excluimos la reserva actual
+            if self.instance and self.instance.pk:
+                colisiones = colisiones.exclude(pk=self.instance.pk)
+
+            if colisiones.exists():
+                self.add_error('mesa', 'La mesa seleccionada coincide en horarios con otra reserva existente.')
+
+        return cleaned_data

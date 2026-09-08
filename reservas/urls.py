@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/eliminar/', views.eliminar_reserva, name='eliminar_reserva'),
     path('<int:pk>/confirmar/', views.confirmar_reserva, name='confirmar_reserva'),
     path('<int:pk>/finalizar/', views.finalizar_reserva, name='finalizar_reserva'),
+    path('confirmar-token/<str:token>/', views.confirmar_reserva_por_token, name='confirmar_reserva_por_token'),
 ]

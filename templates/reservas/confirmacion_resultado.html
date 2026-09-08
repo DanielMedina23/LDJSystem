@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    {% if exito %}
+        <div class="card border-success shadow-sm p-4 mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <i class="bi bi-check-circle-fill text-success display-1"></i>
+                <h2 class="card-title mt-3">¡Reserva Confirmada!</h2>
+                <p class="card-text text-muted mt-2">{{ mensaje }}</p>
+                <a href="{% url 'ver_reservas' %}" class="btn btn-primary mt-3">Ir al panel principal</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card border-danger shadow-sm p-4 mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <i class="bi bi-x-circle-fill text-danger display-1"></i>
+                <h2 class="card-title mt-3">Enlace no válido</h2>
+                <p class="card-text text-muted mt-2">{{ mensaje }}</p>
+                <a href="{% url 'ver_reservas' %}" class="btn btn-secondary mt-3">Volver al inicio</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
