@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Política de Cookies - LDJSystem{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2 mb-0">Política de Cookies</h1>
+</div>
+
+<div class="card bg-secondary text-white mb-4 shadow-sm border-0">
+    <div class="card-body p-4">
+        <h4 class="border-bottom border-dark pb-2 mb-4">1. ¿Qué son las cookies?</h4>
+        <p>Una cookie es un fichero que se descarga en su ordenador al acceder a determinadas páginas web para almacenar y recuperar información sobre la navegación.</p>
+
+        <h4 class="border-bottom border-dark pb-2 mb-4 mt-4">2. Cookies que utilizamos</h4>
+        <ul>
+            <li class="mb-2"><strong>Cookies técnicas (Necesarias):</strong> Esenciales para el funcionamiento de la web (mantener la sesión, seguridad CSRF). No requieren consentimiento.</li>
+            <li><strong>Cookies de análisis (Opcionales):</strong> Nos permiten cuantificar el número de usuarios y medir el uso de la web. <em>Están bloqueadas por defecto hasta que las aceptes.</em></li>
+        </ul>
+
+        <h4 class="border-bottom border-dark pb-2 mb-4 mt-4">3. Gestión de cookies</h4>
+        <p>Puedes configurar o rechazar el uso de cookies desde el banner de configuración que aparece al inicio o mediante las opciones de tu navegador.</p>
+    </div>
+</div>
+{% endblock %}

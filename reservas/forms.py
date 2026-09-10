@@ -5,6 +5,17 @@ from .models import Reserva
 
 
 class ReservaForm(forms.ModelForm):
+    # Casillas de consentimiento obligatorias para cumplimiento legal (RGPD/LOPD)
+    acepta_privacidad = forms.BooleanField(
+        required=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        error_messages={'required': 'Debes aceptar la política de privacidad para continuar.'}
+    )
+    acepta_cookies = forms.BooleanField(
+        required=False,  # Ajustar a True si el consentimiento de cookies analíticas/comerciales es obligatorio previo en el form
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
     class Meta:
         model = Reserva
         fields = [
@@ -15,6 +26,8 @@ class ReservaForm(forms.ModelForm):
             'fecha_hora_inicio',
             'num_personas',
             'notas',
+            'acepta_privacidad',
+            'acepta_cookies',
         ]
         widgets = {
             'fecha_hora_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
@@ -26,6 +39,9 @@ class ReservaForm(forms.ModelForm):
         for name, field in self.fields.items():
             if isinstance(field.widget, forms.Select):
                 field.widget.attrs.update({'class': 'form-select'})
+            elif isinstance(field.widget, forms.CheckboxInput):
+                # Mantener clase específica de Bootstrap para checkboxes sin sobreescribir con form-control
+                pass
             else:
                 field.widget.attrs.update({'class': 'form-control'})
 
