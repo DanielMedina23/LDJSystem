@@ -3,6 +3,7 @@ import uuid
 from datetime import timedelta
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -10,19 +11,46 @@ from django.utils import timezone
 from .forms import ReservaForm
 from .models import Reserva
 from django.conf import settings
-
+from negocio.models import Mesa
+from plano.models import MesaBloqueo
 
 def crear_reserva(request):
+    MesaBloqueo.purgar_expirados()
+    if not request.session.session_key:
+        request.session.create()
+    session_key = request.session.session_key
+
+    mesas = Mesa.objects.filter(activa=True).order_by("id")
+    bloqueos = {b.mesa_id: b.session_key for b in MesaBloqueo.objects.all()}
+    
+    estados_ocupantes = ['activa', 'confirmada', 'en_curso', 'pendiente_confirmacion', 'pendiente_revision']
+
+    for mesa in mesas:
+        if mesa.id in bloqueos:
+            mesa.estado_visual = "seleccionada" if bloqueos[mesa.id] == session_key else "ocupada"
+        else:
+            tiene_reserva = Reserva.objects.filter(mesa_id=mesa.id, estado__in=estados_ocupantes).exists()
+            mesa.estado_visual = "ocupada" if tiene_reserva else "libre"
+
     if request.method == 'POST':
         form = ReservaForm(request.POST)
-        if form.is_valid():
-            reserva = form.save(commit=False)
-            if request.user.is_authenticated:
-                reserva.usuario_creador = request.user
-            
-            reserva.token_confirmacion = uuid.uuid4().hex
-            reserva.expiracion_confirmacion = timezone.now() + timedelta(hours=24)
-            reserva.save()
+        mesa_id = request.POST.get('mesa')
+        
+        if not mesa_id:
+            messages.error(request, "Por favor, selecciona una mesa en el plano.")
+        elif form.is_valid():
+            with transaction.atomic():
+                reserva = form.save(commit=False)
+                reserva.mesa_id = int(mesa_id)
+                if request.user.is_authenticated:
+                    reserva.usuario_creador = request.user
+                
+                reserva.token_confirmacion = uuid.uuid4().hex
+                reserva.expiracion_confirmacion = timezone.now() + timedelta(hours=24)
+                reserva.estado = 'activa'
+                reserva.save()
+
+                MesaBloqueo.objects.filter(mesa_id=mesa_id).delete()
 
             if reserva.correo_cliente:
                 link_relativo = reverse('confirmar_reserva_por_token', kwargs={'token': reserva.token_confirmacion})
@@ -36,24 +64,26 @@ def crear_reserva(request):
                     f"{link_absoluto}\n\n"
                     f"Este enlace caduca en 24 horas."
                 )
-                
-                # Quitamos el try...except temporalmente para que si hay algún fallo, 
-                # se muestre directamente en tu consola de Django y sepas qué ocurre.
-                send_mail(
-                    asunto, 
-                    mensaje, 
-                    os.getenv("EMAIL_HOST_USER"), 
-                    [reserva.correo_cliente], 
-                    fail_silently=False
-                )
+                try:
+                    send_mail(
+                        asunto, 
+                        mensaje, 
+                        os.getenv("EMAIL_HOST_USER"), 
+                        [reserva.correo_cliente], 
+                        fail_silently=False
+                    )
+                except Exception:
+                    pass
 
             messages.success(request, f"¡La reserva #{reserva.id} se ha creado con éxito!")
             return redirect('ver_reservas')
     else:
         form = ReservaForm()
         
-    return render(request, 'reservas/crear_reserva.html', {'form': form})
-
+    return render(request, 'reservas/crear_reserva.html', {
+        'form': form,
+        'mesas': mesas
+    })
 
 def confirmar_reserva_por_token(request, token):
     reserva = get_object_or_404(Reserva, token_confirmacion=token)
@@ -72,7 +102,6 @@ def confirmar_reserva_por_token(request, token):
         'reserva': reserva,
         'mensaje': f'¡Gracias {reserva.nombre_cliente}! Tu reserva ha sido confirmada con éxito.'
     })
-
 
 def ver_reservas(request):
     fecha_seleccionada = request.GET.get('fecha')
@@ -110,11 +139,9 @@ def ver_reservas(request):
         'total_reservas': total_reservas,
     })
 
-
 def detalle_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     return render(request, 'reservas/detalle_reserva.html', {'reserva': reserva})
-
 
 def editar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
@@ -137,7 +164,6 @@ def editar_reserva(request, pk):
         'reserva': reserva
     })
 
-
 def eliminar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     
@@ -149,7 +175,6 @@ def eliminar_reserva(request, pk):
         
     return render(request, 'reservas/eliminar_reserva.html', {'reserva': reserva})
 
-
 def confirmar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     if request.method == 'POST':
@@ -158,7 +183,6 @@ def confirmar_reserva(request, pk):
         messages.success(request, f"¡La reserva #{reserva.id} ha sido confirmada con éxito!")
         return redirect('ver_reservas')
     return redirect('ver_reservas')
-
 
 def finalizar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)

@@ -12,7 +12,7 @@ class ReservaForm(forms.ModelForm):
         error_messages={'required': 'Debes aceptar la política de privacidad para continuar.'}
     )
     acepta_cookies = forms.BooleanField(
-        required=False,  # Ajustar a True si el consentimiento de cookies analíticas/comerciales es obligatorio previo en el form
+        required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
@@ -30,17 +30,24 @@ class ReservaForm(forms.ModelForm):
             'acepta_cookies',
         ]
         widgets = {
-            'fecha_hora_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha_hora_inicio': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M'
+            ),
             'notas': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Formatear la fecha para que el input HTML5 datetime-local la reconozca al editar
+        if self.instance and self.instance.pk and self.instance.fecha_hora_inicio:
+            self.initial['fecha_hora_inicio'] = self.instance.fecha_hora_inicio.strftime('%Y-%m-%dT%H:%M')
+
         for name, field in self.fields.items():
             if isinstance(field.widget, forms.Select):
                 field.widget.attrs.update({'class': 'form-select'})
             elif isinstance(field.widget, forms.CheckboxInput):
-                # Mantener clase específica de Bootstrap para checkboxes sin sobreescribir con form-control
                 pass
             else:
                 field.widget.attrs.update({'class': 'form-control'})
@@ -50,9 +57,10 @@ class ReservaForm(forms.ModelForm):
         mesa = cleaned_data.get('mesa')
         inicio = cleaned_data.get('fecha_hora_inicio')
 
-        # 1. Validar que la fecha/hora no sea en el pasado
+        # 1. Validar fecha pasada solo en creación o si la fecha ha sido modificada
         if inicio and inicio < timezone.now():
-            self.add_error('fecha_hora_inicio', 'No puedes realizar una reserva en una fecha u hora pasada.')
+            if not self.instance.pk or self.instance.fecha_hora_inicio != inicio:
+                self.add_error('fecha_hora_inicio', 'No puedes programar una reserva en una fecha u hora pasada.')
 
         # 2. Validar colisiones de horario en la misma mesa
         if mesa and inicio:
@@ -66,7 +74,6 @@ class ReservaForm(forms.ModelForm):
                 fecha_hora_fin__gt=inicio
             )
 
-            # Si estamos editando, excluimos la reserva actual
             if self.instance and self.instance.pk:
                 colisiones = colisiones.exclude(pk=self.instance.pk)
 

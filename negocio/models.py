@@ -14,11 +14,23 @@ class Negocio(models.Model):
 
 class Mesa(models.Model):
     nombre_interno = models.CharField("Nombre", max_length = 20, unique = True)
-    capacidad      = models.IntegerField("Capacidad", validators = [MinValueValidator(1)]) # Valido que la capacidad sea minimo 1
+    capacidad      = models.IntegerField("Capacidad", validators = [MinValueValidator(1)]) # Valido que la capacidad sea minimo 1[cite: 1]
     activa         = models.BooleanField("Activa", default = True)
+    
+    # Nuevos campos de posicionamiento vectorial para el plano SVG
+    x      = models.PositiveIntegerField("Posición X", default=0)
+    y      = models.PositiveIntegerField("Posición Y", default=0)
+    ancho  = models.PositiveIntegerField("Ancho", default=120)
+    alto   = models.PositiveIntegerField("Alto", default=70)
+    forma  = models.CharField(
+        "Forma",
+        max_length=20,
+        choices=[('rectangular', 'Rectangular'), ('redonda', 'Redonda')],
+        default='rectangular'
+    )
 
     def __str__(self):
-        return f"{self.nombre_interno} - {self.capacidad}"
+        return f"{self.nombre_interno} (Capacidad: {self.capacidad} pers.)"
 
 class Horario(models.Model):
     # Hago uso de Choices para dias semana para evitar errores al 

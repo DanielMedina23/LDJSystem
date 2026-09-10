@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Plano del Local - LJDSystem{% endblock %}
+
+{% block content %}
+<style>
+    .fill-primary { fill: #0d6efd !important; }
+    .fill-success { fill: #198754 !important; }
+    .fill-danger { fill: #dc3545 !important; }
+    .stroke-dark { stroke: #212529; stroke-width: 2px; }
+</style>
+
+<div class="container mt-4">
+    <h2>Distribución del Local</h2>
+    <div class="border rounded bg-white p-2 shadow-sm">
+        <svg id="planoSVG" viewBox="0 0 1000 600" width="100%" style="max-height: 650px; touch-action: none;">
+            
+            <image href="{% static 'img/local_pruebas.png' %}" width="1000" height="600" preserveAspectRatio="none"/>
+            
+            {% for mesa in mesas %}
+            <g class="mesa-elemento" 
+               data-id="{{ mesa.id }}" 
+               data-capacidad="{{ mesa.capacidad }}"
+               data-estado="{{ mesa.estado_visual }}"
+               transform="translate({{ mesa.x }}, {{ mesa.y }})" 
+               style="cursor: grab; user-select: none;">
+                
+                {% if mesa.forma == 'redonda' %}
+                <circle cx="{% widthratio mesa.ancho 2 1 %}" 
+                        cy="{% widthratio mesa.alto 2 1 %}" 
+                        r="{% widthratio mesa.ancho 2 1 %}" 
+                        class="mesa-figura stroke-dark {% if mesa.estado_visual == 'seleccionada' %}fill-success{% elif mesa.estado_visual == 'ocupada' %}fill-danger{% else %}fill-primary{% endif %}" />
+                {% else %}
+                <rect x="0" y="0" 
+                      width="{{ mesa.ancho }}" 
+                      height="{{ mesa.alto }}" 
+                      rx="10" 
+                      class="mesa-figura stroke-dark {% if mesa.estado_visual == 'seleccionada' %}fill-success{% elif mesa.estado_visual == 'ocupada' %}fill-danger{% else %}fill-primary{% endif %}" />
+                {% endif %}
+                
+                <text x="{% widthratio mesa.ancho 2 1 %}" 
+                      y="{% widthratio mesa.alto 2 1 %}" 
+                      text-anchor="middle" 
+                      dominant-baseline="middle" 
+                      fill="#fff"
+                      pointer-events="none"
+                      font-weight="bold">
+                    <tspan x="{% widthratio mesa.ancho 2 1 %}" dy="-6">{{ mesa.nombre_interno }}</tspan>
+                    <tspan x="{% widthratio mesa.ancho 2 1 %}" dy="18" font-size="12" fill="#f8f9fa">{{ mesa.capacidad }} sillas</tspan>
+                </text>
+            </g>
+            {% endfor %}
+            
+        </svg>
+    </div>
+</div>
+
+<!-- Modal de Gestión de Reservas (Libres) -->
+<div class="modal fade" id="modalReserva" tabindex="-1" aria-labelledby="modalReservaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalReservaLabel">Gestionar Reserva de Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formReserva">
+                    <input type="hidden" id="inputMesaId">
+                    <div class="mb-3">
+                        <label for="inputCliente" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="inputCliente" required placeholder="Nombre del cliente">
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputComensales" class="form-label">Comensales</label>
+                        <input type="number" class="form-control" id="inputComensales" min="1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarReserva" class="btn btn-primary">Confirmar Reserva</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Mesa Ocupada / Reservada -->
+<div class="modal fade" id="modalOcupada" tabindex="-1" aria-labelledby="modalOcupadaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalOcupadaLabel">Mesa Ocupada / Reservada</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="inputMesaOcupadaId">
+                <p><strong>Cliente:</strong> <span id="spanClienteReserva">-</span></p>
+                <p><strong>Comensales:</strong> <span id="spanComensalesReserva">-</span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnLiberarMesa" class="btn btn-outline-danger">Liberar / Cancelar Reserva</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const svg = document.getElementById("planoSVG");
+    const csrfToken = "{{ csrf_token }}";
+    let mesaActiva = null;
+    let hasMoved = false;
+    let startX = 0;
+    let startY = 0;
+    let initialX = 0;
+    let initialY = 0;
+    let mesaBloqueadaActual = null;
+
+    const modalReservaEl = document.getElementById('modalReserva');
+    const modalReserva = new bootstrap.Modal(modalReservaEl);
+
+    const modalOcupadaEl = document.getElementById('modalOcupada');
+    const modalOcupada = new bootstrap.Modal(modalOcupadaEl);
+
+    document.querySelectorAll(".mesa-elemento").forEach(mesaG => {
+        mesaG.addEventListener("pointerdown", (e) => {
+            mesaActiva = mesaG;
+            try { mesaActiva.setPointerCapture(e.pointerId); } catch (err) {}
+            hasMoved = false;
+            mesaG.style.cursor = "grabbing";
+
+            startX = e.clientX;
+            startY = e.clientY;
+
+            let transformVal = mesaG.getAttribute("transform");
+            let match = transformVal ? transformVal.match(/translate\(([^,]+),\s*([^\)]+)\)/) : null;
+            initialX = match ? parseFloat(match[1]) : 0;
+            initialY = match ? parseFloat(match[2]) : 0;
+
+            e.preventDefault();
+        });
+
+        mesaG.addEventListener("pointermove", (e) => {
+            if (!mesaActiva || mesaActiva !== mesaG) return;
+            
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasMoved = true;
+
+            const rectSvg = svg.getBoundingClientRect();
+            let scaleX = 1000 / rectSvg.width;
+            let scaleY = 600 / rectSvg.height;
+
+            let nuevoX = initialX + (dx * scaleX);
+            let nuevoY = initialY + (dy * scaleY);
+
+            let rect = mesaG.querySelector("rect, circle");
+            let anchoMesa = rect && rect.tagName === 'rect' ? parseInt(rect.getAttribute("width")) : 120;
+            let altoMesa = rect && rect.tagName === 'rect' ? parseInt(rect.getAttribute("height")) : 70;
+
+            nuevoX = Math.max(0, Math.min(1000 - anchoMesa, nuevoX));
+            nuevoY = Math.max(0, Math.min(600 - altoMesa, nuevoY));
+
+            mesaG.setAttribute("transform", `translate(${nuevoX}, ${nuevoY})`);
+        });
+
+        mesaG.addEventListener("pointerup", async (e) => {
+            if (!mesaActiva || mesaActiva !== mesaG) return;
+            try { mesaActiva.releasePointerCapture(e.pointerId); } catch (err) {}
+            mesaG.style.cursor = "grab";
+
+            let transformVal = mesaG.getAttribute("transform");
+            let match = transformVal ? transformVal.match(/translate\(([^,]+),\s*([^\)]+)\)/) : null;
+            let finalX = match ? Math.round(parseFloat(match[1])) : 0;
+            let finalY = match ? Math.round(parseFloat(match[2])) : 0;
+            let mesaId = mesaG.dataset.id;
+            mesaActiva = null;
+
+            if (hasMoved) {
+                try {
+                    await fetch("{% url 'plano:actualizar_posicion_mesa' %}", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                        body: JSON.stringify({ mesa_id: mesaId, x: finalX, y: finalY })
+                    });
+                } catch (error) {
+                    console.error("Error de red:", error);
+                }
+            }
+        });
+
+        mesaG.addEventListener("click", async () => {
+            if (hasMoved) return;
+            const mesaId = mesaG.dataset.id;
+            const estadoMesa = mesaG.dataset.estado;
+
+            if (estadoMesa === 'ocupada') {
+                try {
+                    const response = await fetch("{% url 'plano:obtener_detalle_reserva' %}", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                        body: JSON.stringify({ mesa_id: mesaId })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok && data.ok) {
+                        document.getElementById("inputMesaOcupadaId").value = mesaId;
+                        document.getElementById("spanClienteReserva").textContent = data.cliente;
+                        document.getElementById("spanComensalesReserva").textContent = data.comensales;
+                        modalOcupada.show();
+                    } else {
+                        alert(data.error || "No se pudo obtener la información de la reserva.");
+                    }
+                } catch (error) {
+                    console.error("Error de red:", error);
+                }
+                return;
+            }
+            
+            try {
+                const response = await fetch("{% url 'plano:bloquear_mesa_temporal' %}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                    body: JSON.stringify({ mesa_id: mesaId })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.ok) {
+                    mesaBloqueadaActual = mesaId;
+                    document.querySelectorAll(".mesa-figura").forEach(f => {
+                        f.classList.remove("fill-success");
+                        if (!f.classList.contains("fill-danger")) f.classList.add("fill-primary");
+                    });
+                    const figura = mesaG.querySelector(".mesa-figura");
+                    figura.classList.remove("fill-primary");
+                    figura.classList.add("fill-success");
+                    
+                    document.getElementById("inputMesaId").value = mesaId;
+                    document.getElementById("inputCliente").value = "";
+                    document.getElementById("inputComensales").value = "";
+                    document.getElementById("inputComensales").max = mesaG.dataset.capacidad;
+                    modalReserva.show();
+                } else {
+                    alert(data.error || "No se pudo bloquear la mesa.");
+                }
+            } catch (error) {
+                console.error("Error de red:", error);
+            }
+        });
+    });
+
+    document.getElementById("btnGuardarReserva").addEventListener("click", async () => {
+        const mesaId = document.getElementById("inputMesaId").value;
+        const cliente = document.getElementById("inputCliente").value.trim();
+        const comensales = parseInt(document.getElementById("inputComensales").value);
+        const maxCapacidad = parseInt(document.getElementById("inputComensales").max);
+
+        if (!cliente) {
+            alert("El nombre del cliente es obligatorio.");
+            return;
+        }
+
+        if (isNaN(comensales) || comensales < 1 || comensales > maxCapacidad) {
+            alert(`El número de comensales debe estar entre 1 y ${maxCapacidad}.`);
+            return;
+        }
+
+        try {
+            const response = await fetch("{% url 'plano:crear_reserva' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ mesa_id: mesaId, cliente: cliente, comensales: comensales })
+            });
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                mesaBloqueadaActual = null;
+                modalReserva.hide();
+                window.location.reload();
+            } else {
+                alert(data.error || "No se pudo completar la reserva.");
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
+        }
+    });
+
+    document.getElementById("btnLiberarMesa").addEventListener("click", async () => {
+        const mesaId = document.getElementById("inputMesaOcupadaId").value;
+        if (!confirm("¿Está seguro de liberar esta mesa y cancelar su reserva?")) return;
+
+        try {
+            const response = await fetch("{% url 'plano:liberar_mesa_ocupada' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ mesa_id: mesaId })
+            });
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                modalOcupada.hide();
+                window.location.reload();
+            } else {
+                alert(data.error || "No se pudo liberar la mesa.");
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
+        }
+    });
+
+    modalReservaEl.addEventListener('hidden.bs.modal', async () => {
+        if (mesaBloqueadaActual) {
+            try {
+                await fetch("{% url 'plano:liberar_bloqueo_temporal' %}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mesa_id: mesaBloqueadaActual })
+                });
+            } catch (err) {}
+            mesaBloqueadaActual = null;
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener('pagehide', () => {
+        if (mesaBloqueadaActual) {
+            const data = JSON.stringify({ mesa_id: mesaBloqueadaActual });
+            const blob = new Blob([data], { type: 'application/json' });
+            navigator.sendBeacon("{% url 'plano:liberar_bloqueo_temporal' %}", blob);
+        }
+    });
+
+    setInterval(async () => {
+        if (mesaActiva || modalReservaEl.classList.contains('show') || modalOcupadaEl.classList.contains('show')) return;
+
+        try {
+            const response = await fetch("{% url 'plano:estado_mesas' %}");
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                data.mesas.forEach(item => {
+                    const mesaG = document.querySelector(`.mesa-elemento[data-id="${item.id}"]`);
+                    if (mesaG) {
+                        mesaG.dataset.estado = item.estado;
+                        const figura = mesaG.querySelector(".mesa-figura");
+                        if (figura) {
+                            figura.classList.remove("fill-primary", "fill-success", "fill-danger");
+                            if (item.estado === 'seleccionada') {
+                                figura.classList.add("fill-success");
+                            } else if (item.estado === 'ocupada') {
+                                figura.classList.add("fill-danger");
+                            } else {
+                                figura.classList.add("fill-primary");
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Error en polling de mesas:", err);
+        }
+    }, 6000);
+});
+</script>
+{% endblock %}
