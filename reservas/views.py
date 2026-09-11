@@ -265,7 +265,7 @@ def detalle_reserva(request, pk):
     return render(request, 'reservas/detalle_reserva.html', {'reserva': reserva})
 
 @personal_required
-def editar_reserva(request, pk):    
+def editar_reserva(request, pk):
     """
     Permite al personal modificar una reserva existente.
 
@@ -369,12 +369,15 @@ def editar_reserva(request, pk):
         # Si entramos por GET, mostramos los datos actuales de la reserva
         form = ReservaForm(instance=reserva)
 
+    mesas = Mesa.objects.filter(activa=True).order_by('id')
+
     return render(
         request,
         'reservas/editar_reserva.html',
         {
             'form': form,
-            'reserva': reserva
+            'reserva': reserva,
+            'mesas': mesas,
         }
     )
 
