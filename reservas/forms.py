@@ -65,7 +65,11 @@ class ReservaForm(forms.ModelForm):
         # 2. Validar colisiones de horario en la misma mesa
         if mesa and inicio:
             fin = inicio + timedelta(hours=2)
-            estados_activos = ['pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
+            estados_activos = ['activa',
+                               'pendiente_confirmacion',
+                               'pendiente_revision',
+                               'confirmada',
+                               'en_curso']
             
             colisiones = Reserva.objects.filter(
                 mesa=mesa,

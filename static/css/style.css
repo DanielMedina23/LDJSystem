@@ -1,0 +1,38 @@
+/* Estilos de reservas */
+.fill-primary {
+    fill: #0d6efd !important; 
+    cursor: pointer; 
+}
+
+.fill-success {
+    fill: #198754 !important;
+    cursor: pointer;
+}
+
+.fill-danger {
+    fill: #dc3545 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.fill-disabled {
+    fill: #6c757d !important;
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.stroke-dark {
+    stroke: #212529;
+    stroke-width: 2px;
+}
+
+.mesa-elemento:not([data-estado="ocupada"]):hover {
+    filter: brightness(1.1);
+}
+
+/* ERRORES DE FORMULARIO */
+.error-formulario {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 0.4rem;
+}

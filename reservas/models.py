@@ -12,6 +12,7 @@ class Reserva(models.Model):
     ESTADOS = [
         ("pendiente_confirmacion", "Pendiente de confirmación"),
         ("pendiente_revision", "Pendiente de revisión"),
+        ("activa", "Activa"),
         ("confirmada", "Confirmada"),
         ("en_curso", "En curso"),
         ("finalizada", "Finalizada"),

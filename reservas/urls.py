@@ -2,12 +2,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.ver_reservas, name='ver_reservas'),
-    path('crear/', views.crear_reserva, name='crear_reserva'),
-    path('<int:pk>/', views.detalle_reserva, name='detalle_reserva'),
-    path('<int:pk>/editar/', views.editar_reserva, name='editar_reserva'),
-    path('<int:pk>/eliminar/', views.eliminar_reserva, name='eliminar_reserva'),
-    path('<int:pk>/confirmar/', views.confirmar_reserva, name='confirmar_reserva'),
-    path('<int:pk>/finalizar/', views.finalizar_reserva, name='finalizar_reserva'),
+    path('',                             views.ver_reservas, name='ver_reservas'),
+    path('crear/',                       views.crear_reserva, name='crear_reserva'),
+    path('<int:pk>/',                    views.detalle_reserva, name='detalle_reserva'),
+    path('<int:pk>/editar/',             views.editar_reserva, name='editar_reserva'),
+    path('<int:pk>/eliminar/',           views.eliminar_reserva, name='eliminar_reserva'),
+    path('<int:pk>/confirmar/',          views.confirmar_reserva, name='confirmar_reserva'),
+    path('<int:pk>/finalizar/',          views.finalizar_reserva, name='finalizar_reserva'),
     path('confirmar-token/<str:token>/', views.confirmar_reserva_por_token, name='confirmar_reserva_por_token'),
+    path('disponibilidad-mesas/',        views.disponibilidad_mesas, name='disponibilidad_mesas'),
 ]
