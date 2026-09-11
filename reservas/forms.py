@@ -42,7 +42,9 @@ class ReservaForm(forms.ModelForm):
         
         # Formatear la fecha para que el input HTML5 datetime-local la reconozca al editar
         if self.instance and self.instance.pk and self.instance.fecha_hora_inicio:
-            self.initial['fecha_hora_inicio'] = self.instance.fecha_hora_inicio.strftime('%Y-%m-%dT%H:%M')
+            fecha_local = timezone.localtime(self.instance.fecha_hora_inicio)
+
+            self.initial['fecha_hora_inicio'] = fecha_local.strftime('%Y-%m-%dT%H:%M')
 
         for name, field in self.fields.items():
             if isinstance(field.widget, forms.Select):
