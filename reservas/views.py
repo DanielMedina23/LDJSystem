@@ -8,11 +8,12 @@ from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.conf import settings
 from .forms import ReservaForm
 from .models import Reserva
-from django.conf import settings
 from negocio.models import Mesa
 from plano.models import MesaBloqueo
+from usuarios.decorators import personal_required
 
 def crear_reserva(request):
     MesaBloqueo.purgar_expirados()
@@ -103,6 +104,7 @@ def confirmar_reserva_por_token(request, token):
         'mensaje': f'¡Gracias {reserva.nombre_cliente}! Tu reserva ha sido confirmada con éxito.'
     })
 
+@personal_required
 def ver_reservas(request):
     fecha_seleccionada = request.GET.get('fecha')
     estado_seleccionado = request.GET.get('estado')
@@ -139,10 +141,12 @@ def ver_reservas(request):
         'total_reservas': total_reservas,
     })
 
+@personal_required
 def detalle_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     return render(request, 'reservas/detalle_reserva.html', {'reserva': reserva})
 
+@personal_required
 def editar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     
@@ -164,6 +168,7 @@ def editar_reserva(request, pk):
         'reserva': reserva
     })
 
+@personal_required
 def eliminar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     
@@ -175,6 +180,7 @@ def eliminar_reserva(request, pk):
         
     return render(request, 'reservas/eliminar_reserva.html', {'reserva': reserva})
 
+@personal_required
 def confirmar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     if request.method == 'POST':
@@ -184,6 +190,7 @@ def confirmar_reserva(request, pk):
         return redirect('ver_reservas')
     return redirect('ver_reservas')
 
+@personal_required
 def finalizar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     
