@@ -205,22 +205,93 @@ def crear_reserva(request):
     )
 
 def confirmar_reserva_por_token(request, token):
-    reserva = get_object_or_404(Reserva, token_confirmacion=token)
-    
-    if reserva.expiracion_confirmacion and timezone.now() > reserva.expiracion_confirmacion:
-        return render(request, 'reservas/confirmacion_resultado.html', {
-            'exito': False,
-            'mensaje': 'El enlace de confirmacion ha caducado. Por favor, ponte en contacto con nosotros.'
-        })
+    """
+    Confirma una reserva usando el enlace enviado al correo del cliente.
 
+    Primero busca la reserva usando el token del enlace.
+    Después comprueba que el enlace no haya caducado y que la reserva
+    todavía se pueda confirmar.
+
+    Si la reserva ya estaba confirmada, simplemente se informa al cliente.
+    Si está cancelada, finalizada o rechazada, no se permite confirmarla.
+
+    Si todo está correcto, la reserva cambia al estado 'confirmada'.
+    """
+
+    # Buscamos la reserva que pertenece al token del enlace
+    reserva = get_object_or_404(
+        Reserva,
+        token_confirmacion=token
+    )
+
+    # Comprobamos si el enlace ya ha caducado
+    if (
+        reserva.expiracion_confirmacion
+        and timezone.now() > reserva.expiracion_confirmacion
+    ):
+        return render(
+            request,
+            'reservas/confirmacion_resultado.html',
+            {
+                'exito': False,
+                'mensaje': (
+                    'El enlace de confirmación ha caducado. '
+                    'Por favor, ponte en contacto con nosotros.'
+                )
+            }
+        )
+
+    # Si ya estaba confirmada, no hacemos ningún cambio
+    if reserva.estado == 'confirmada':
+        return render(
+            request,
+            'reservas/confirmacion_resultado.html',
+            {
+                'exito': True,
+                'reserva': reserva,
+                'mensaje': (
+                    'Esta reserva ya había sido confirmada anteriormente.'
+                )
+            }
+        )
+
+    # Estos estados ya no permiten confirmar la reserva
+    estados_no_confirmables = [
+        'cancelada',
+        'finalizada',
+        'rechazada',
+    ]
+
+    # Evitamos confirmar una reserva que ya terminó o fue cancelada
+    if reserva.estado in estados_no_confirmables:
+        return render(
+            request,
+            'reservas/confirmacion_resultado.html',
+            {
+                'exito': False,
+                'mensaje': (
+                    'Esta reserva ya no puede ser confirmada. '
+                    'Por favor, ponte en contacto con nosotros.'
+                )
+            }
+        )
+
+    # Si no hubo ningún problema, confirmamos la reserva
     reserva.estado = 'confirmada'
     reserva.save()
-    
-    return render(request, 'reservas/confirmacion_resultado.html', {
-        'exito': True,
-        'reserva': reserva,
-        'mensaje': f'¡Gracias {reserva.nombre_cliente}! Tu reserva ha sido confirmada con éxito.'
-    })
+
+    return render(
+        request,
+        'reservas/confirmacion_resultado.html',
+        {
+            'exito': True,
+            'reserva': reserva,
+            'mensaje': (
+                f'¡Gracias {reserva.nombre_cliente}! '
+                'Tu reserva ha sido confirmada con éxito.'
+            )
+        }
+    )
 
 @personal_required
 def ver_reservas(request):
@@ -267,23 +338,20 @@ def detalle_reserva(request, pk):
 @personal_required
 def editar_reserva(request, pk):
     """
-    Permite al personal modificar una reserva existente.
+    Permite al personal modificar los datos de una reserva.
 
-    Busca la reserva que se quiere editar y procesa los nuevos datos
-    enviados desde el formulario.
+    Se pueden cambiar datos como el cliente, la fecha,
+    el número de personas, las notas y la mesa.
 
-    Antes de guardar los cambios, comprueba que la mesa tenga capacidad
-    suficiente y que no exista otra reserva en el mismo horario.
-    La reserva que se está editando se excluye de esta comprobación
-    para evitar que genere conflicto consigo misma.
+    El estado de la reserva no se cambia desde esta función.
+    Para cambiar el estado se usan acciones específicas,
+    como confirmar o finalizar.
 
-    Si cambia la hora de inicio, también se vuelve a calcular la hora
-    de finalización teniendo en cuenta una duración de 2 horas.
-
-    Si todas las validaciones son correctas, actualiza la reserva.
+    Antes de guardar, comprobamos que la mesa tenga espacio
+    suficiente y que no esté ocupada en ese horario.
     """
 
-    # Buscamos la reserva que se quiere modificar
+    # Buscamos la reserva que queremos modificar
     reserva = get_object_or_404(Reserva, pk=pk)
 
     if request.method == 'POST':
@@ -294,10 +362,10 @@ def editar_reserva(request, pk):
             num_personas = form.cleaned_data['num_personas']
             fecha_hora_inicio = form.cleaned_data['fecha_hora_inicio']
 
-            # Calculamos nuevamente la hora final de la reserva
+            # Calculamos la hora en la que terminará la reserva
             fecha_hora_fin = fecha_hora_inicio + timedelta(hours=2)
 
-            # Estados que hacen que una mesa se considere ocupada
+            # Estos estados hacen que una mesa se considere ocupada
             estados_bloqueantes = [
                 'activa',
                 'pendiente_confirmacion',
@@ -309,12 +377,12 @@ def editar_reserva(request, pk):
             with transaction.atomic():
 
                 # Bloqueamos la mesa mientras comprobamos su disponibilidad
-                # para evitar que dos reservas la ocupen al mismo tiempo
+                # para evitar que dos reservas usen la misma mesa al mismo tiempo
                 mesa_bloqueada = Mesa.objects.select_for_update().get(
                     pk=mesa.pk
                 )
 
-                # Comprobamos que la mesa tenga espacio para las personas indicadas
+                # Comprobamos que la mesa tenga espacio suficiente
                 if mesa_bloqueada.capacidad < num_personas:
                     form.add_error(
                         'mesa',
@@ -322,8 +390,8 @@ def editar_reserva(request, pk):
                     )
 
                 else:
-                    # Buscamos otra reserva que use la misma mesa
-                    # y coincida con el nuevo horario
+                    # Buscamos si existe otra reserva en la misma mesa
+                    # que coincida con el nuevo horario
                     existe_solapamiento = Reserva.objects.filter(
                         mesa=mesa_bloqueada,
                         estado__in=estados_bloqueantes,
@@ -336,28 +404,27 @@ def editar_reserva(request, pk):
                     if existe_solapamiento:
                         form.add_error(
                             'mesa',
-                            'La mesa seleccionada coincide en horarios con otra reserva existente.'
+                            'La mesa seleccionada coincide en horarios '
+                            'con otra reserva existente.'
                         )
 
                     else:
+                        # Preparamos los cambios sin guardar todavía
                         reserva_obj = form.save(commit=False)
 
+                        # Guardamos la mesa seleccionada
                         reserva_obj.mesa = mesa_bloqueada
 
-                        # Actualizamos también la hora final
+                        # Actualizamos también la hora de finalización
                         reserva_obj.fecha_hora_fin = fecha_hora_fin
 
-                        # Comprobamos que el nuevo estado sea válido
-                        nuevo_estado = request.POST.get('estado')
-
-                        if nuevo_estado in dict(Reserva.ESTADOS):
-                            reserva_obj.estado = nuevo_estado
-
+                        # Guardamos los cambios de la reserva
                         reserva_obj.save()
 
                         messages.success(
                             request,
-                            f"¡La reserva #{reserva_obj.id} se ha actualizado correctamente!"
+                            f"¡La reserva #{reserva_obj.id} "
+                            f"se ha actualizado correctamente!"
                         )
 
                         return redirect(
@@ -366,10 +433,13 @@ def editar_reserva(request, pk):
                         )
 
     else:
-        # Si entramos por GET, mostramos los datos actuales de la reserva
+        # Si solo entramos a la página, mostramos los datos actuales
         form = ReservaForm(instance=reserva)
 
-    mesas = Mesa.objects.filter(activa=True).order_by('id')
+    # Enviamos las mesas activas para mostrarlas en el plano
+    mesas = Mesa.objects.filter(
+        activa=True
+    ).order_by('id')
 
     return render(
         request,
@@ -395,31 +465,105 @@ def eliminar_reserva(request, pk):
 
 @personal_required
 def confirmar_reserva(request, pk):
+    """
+    Confirma una reserva desde el sistema.
+
+    Antes de cambiar el estado, comprobamos que la reserva
+    todavía se pueda confirmar.
+
+    Si ya está confirmada, simplemente mostramos un mensaje.
+    Si está cancelada, finalizada o rechazada, no permitimos
+    cambiarla a confirmada.
+    """
+
+    # Buscamos la reserva que queremos confirmar
     reserva = get_object_or_404(Reserva, pk=pk)
+
     if request.method == 'POST':
+
+        # Si ya está confirmada, no hacemos ningún cambio
+        if reserva.estado == 'confirmada':
+            messages.info(
+                request,
+                f"La reserva #{reserva.id} ya estaba confirmada."
+            )
+
+            return redirect('ver_reservas')
+
+        # Estos estados ya no permiten confirmar la reserva
+        estados_no_confirmables = [
+            'cancelada',
+            'finalizada',
+            'rechazada',
+        ]
+
+        # Evitamos confirmar una reserva que ya terminó
+        # o que fue cancelada o rechazada
+        if reserva.estado in estados_no_confirmables:
+            messages.error(
+                request,
+                f"La reserva #{reserva.id} ya no se puede confirmar."
+            )
+
+            return redirect('ver_reservas')
+
+        # Si todo está correcto, confirmamos la reserva
         reserva.estado = 'confirmada'
         reserva.save()
-        messages.success(request, f"¡La reserva #{reserva.id} ha sido confirmada con éxito!")
+
+        messages.success(
+            request,
+            f"¡La reserva #{reserva.id} ha sido confirmada con éxito!"
+        )
+
         return redirect('ver_reservas')
+
     return redirect('ver_reservas')
 
 @personal_required
 def finalizar_reserva(request, pk):
+    """
+    Finaliza una reserva cuando el cliente ya terminó su visita.
+    Solo se puede finalizar una reserva que esté en estado 'en_curso'.
+    Si la reserva está en cualquier otro estado, no se modifica.
+    """
+
+    # Buscamos la reserva que queremos finalizar
     reserva = get_object_or_404(Reserva, pk=pk)
-    
+
     if request.method == 'POST':
+
+        # Solo permitimos finalizar reservas que estén en curso
+        if reserva.estado != 'en_curso':
+            messages.error(
+                request,
+                "Esta reserva no se puede finalizar porque no está en curso."
+            )
+
+            return redirect(
+                'detalle_reserva',
+                pk=reserva.pk
+            )
+
+        # Cambiamos el estado de la reserva a finalizada
         reserva.estado = 'finalizada'
         reserva.save()
-        
+
+        # Si el cliente tiene correo, enviamos una solicitud de reseña
         if reserva.correo_cliente:
-            asunto = f"¡Gracias por visitarnos, {reserva.nombre_cliente}!"
+            asunto = (
+                f"¡Gracias por visitarnos, {reserva.nombre_cliente}!"
+            )
+
             mensaje = (
                 f"Hola {reserva.nombre_cliente},\n\n"
                 f"Esperamos que tu estancia en el bar haya sido de tu agrado.\n\n"
-                f"¿Podrías valorarnos en nuestro perfil de Google? Nos ayudaría muchísimo a seguir mejorando:\n"
+                f"¿Podrías valorarnos en nuestro perfil de Google? "
+                f"Nos ayudaría muchísimo a seguir mejorando:\n"
                 f"{settings.GOOGLE_MAPS_REVIEW_URL}\n\n"
                 f"¡Te esperamos pronto!"
             )
+
             try:
                 send_mail(
                     asunto,
@@ -428,13 +572,24 @@ def finalizar_reserva(request, pk):
                     [reserva.correo_cliente],
                     fail_silently=False
                 )
+
             except Exception:
                 pass
 
-        messages.success(request, f"¡La reserva #{reserva.id} ha sido finalizada y se ha enviado la solicitud de reseña!")
+        messages.success(
+            request,
+            f"¡La reserva #{reserva.id} ha sido finalizada correctamente!"
+        )
+
         return redirect('ver_reservas')
-        
-    return render(request, 'reservas/finalizar_reserva.html', {'reserva': reserva})
+
+    return render(
+        request,
+        'reservas/finalizar_reserva.html',
+        {
+            'reserva': reserva
+        }
+    )
 
 @require_GET
 def disponibilidad_mesas(request):
