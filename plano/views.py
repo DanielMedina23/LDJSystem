@@ -6,9 +6,20 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_required, user_passes_test
 from negocio.models import Mesa
 from reservas.models import Reserva
 from .models import MesaBloqueo
+
+def _es_jefe_o_trabajador(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_superuser or user.groups.filter(name__in=['Jefes', 'Trabajadores']).exists()
+
+def _es_jefe_o_superadmin(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_superuser or user.groups.filter(name='Jefes').exists()
 
 @require_POST
 def bloquear_mesa_temporal(request):
@@ -41,6 +52,8 @@ def bloquear_mesa_temporal(request):
 
     return JsonResponse({"ok": True, "expires_at": expires_at.isoformat()})
 
+@login_required(login_url='/usuarios/login/')
+@user_passes_test(_es_jefe_o_trabajador, login_url='/usuarios/login/')
 def ver_plano(request):
     MesaBloqueo.purgar_expirados()
     if not request.session.session_key:
@@ -56,10 +69,16 @@ def ver_plano(request):
         else:
             mesa.estado_visual = "libre"
 
-    return render(request, "plano/index.html", {"mesas": mesas})
+    return render(request, "plano/ver_plano.html", {
+        "mesas": mesas,
+        "es_jefe_o_superadmin": _es_jefe_o_superadmin(request.user)
+    })
 
 @require_POST
 def actualizar_posicion_mesa(request):
+    if not _es_jefe_o_superadmin(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado. Solo Jefes pueden modificar el plano."}, status=403)
+
     try:
         datos = json.loads(request.body)
         mesa_id = int(datos.get("mesa_id"))
@@ -73,6 +92,68 @@ def actualizar_posicion_mesa(request):
     mesa.y = y
     mesa.save(update_fields=['x', 'y'])
 
+    return JsonResponse({"ok": True})
+
+@require_POST
+def crear_mesa(request):
+    if not _es_jefe_o_superadmin(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado. Solo Jefes pueden añadir mesas."}, status=403)
+
+    try:
+        datos = json.loads(request.body)
+        nombre = datos.get("nombre")
+        capacidad = int(datos.get("capacidad"))
+        x = int(datos.get("x", 100))
+        y = int(datos.get("y", 100))
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return JsonResponse({"ok": False, "error": "Datos inválidos."}, status=400)
+
+    mesa = Mesa.objects.create(
+        nombre_interno=nombre, 
+        capacidad=capacidad, 
+        x=x, 
+        y=y, 
+        ancho=120, 
+        alto=70, 
+        forma='rectangulo', 
+        activa=True
+    )
+    return JsonResponse({"ok": True, "mesa_id": mesa.id})
+
+@require_POST
+def modificar_mesa(request):
+    if not _es_jefe_o_superadmin(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado. Solo Jefes pueden modificar mesas."}, status=403)
+
+    try:
+        datos = json.loads(request.body)
+        mesa_id = int(datos.get("mesa_id"))
+        nombre = datos.get("nombre")
+        capacidad = int(datos.get("capacidad"))
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return JsonResponse({"ok": False, "error": "Datos inválidos."}, status=400)
+
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    mesa.nombre_interno = nombre
+    mesa.capacidad = capacidad
+    mesa.save(update_fields=['nombre_interno', 'capacidad'])
+    return JsonResponse({"ok": True})
+
+@require_POST
+def eliminar_mesa(request):
+    if not _es_jefe_o_superadmin(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado. Solo Jefes pueden eliminar mesas."}, status=403)
+
+    try:
+        datos = json.loads(request.body)
+        mesa_id = int(datos.get("mesa_id"))
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return JsonResponse({"ok": False, "error": "Datos inválidos."}, status=400)
+
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    mesa.activa = False
+    mesa.save(update_fields=['activa'])
+    MesaBloqueo.objects.filter(mesa=mesa).delete()
     return JsonResponse({"ok": True})
 
 @require_POST
@@ -136,6 +217,9 @@ def obtener_detalle_reserva(request):
 
 @require_POST
 def liberar_mesa_ocupada(request):
+    if not _es_jefe_o_trabajador(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado."}, status=403)
+
     try:
         datos = json.loads(request.body)
         mesa_id = int(datos.get("mesa_id"))

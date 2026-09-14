@@ -23,7 +23,7 @@
 
 </head>
 
-<body class="bg-light text-dark">
+<body class="bg-light text-dark d-flex flex-column min-vh-100">
 
     <!--
         Barra de navegación global.
@@ -38,7 +38,29 @@
     =================================================== -->
 
     <!-- Modal de inicio de sesión -->
-    {% include "usuarios/login.html" %}
+    {% include "usuarios/login_modal.html" with request=request %}
+
+    <!-- Modal de confirmación para cerrar sesión -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-3 bg-dark text-white">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold" id="logoutModalLabel">¿Cerrar sesión?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="text-white-50 mb-0">¿Estás seguro de que deseas salir de tu cuenta de LDJSystem?</p>
+                </div>
+                <div class="modal-footer border-secondary justify-content-between">
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{% url 'logout' %}" method="POST" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm fw-semibold">Sí, cerrar sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal de registro de clientes -->
     {% include "usuarios/cliente/agregar_cliente.html" %}
@@ -50,18 +72,19 @@
     <div class="container mt-3">
         {% if messages %}
         {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'success' }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'success' }}{% endif %} alert-dismissible fade show shadow-sm"
+            role="alert">
             <strong>
                 {% if message.tags == 'error' or message.tags == 'danger' %}
-                    ¡Error!
+                ¡Error!
                 {% elif message.tags == 'warning' %}
-                    ¡Atención!
+                ¡Atención!
                 {% elif message.tags == 'info' %}
-                    ¡Información!
+                ¡Información!
                 {% else %}
-                    ¡Éxito!
+                ¡Éxito!
                 {% endif %}
-            </strong> 
+            </strong>
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -73,7 +96,7 @@
     <!-- ==================================================
          CONTENIDO PRINCIPAL
     =================================================== -->
-    <main class="container my-4">
+    <main class="container my-4 flex-fill">
 
         {% block content %}
 

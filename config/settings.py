@@ -148,3 +148,6 @@ AUTH_USER_MODEL = "usuarios.Usuario"
 
 # Configuración para el enlace de reseñas de Google Maps
 GOOGLE_MAPS_REVIEW_URL = os.getenv("GOOGLE_MAPS_REVIEW_URL")
+
+#Verificacion automatica de usuarios para login-required
+LOGIN_URL = '/usuarios/login/'

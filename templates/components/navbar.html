@@ -73,15 +73,13 @@
               <i class="bi bi-person-circle me-1"></i>{{ request.user.first_name|default:request.user.username }}
             </a>
           </li>
-
-          <!-- Cierre de sesión -->
-          <li class="nav-item mt-2 mt-lg-0">
-            <form method="POST" action="{% url 'logout' %}" class="m-0 d-grid d-lg-block">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-outline-light w-100">
-                Cerrar sesión
-              </button>
-            </form>
+          
+          <!--Boton para cerrar sesion -->
+          <li class="nav-item">
+            <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
+              data-bs-target="#logoutModal">
+              Cerrar sesión
+            </button>
           </li>
 
           {% else %}

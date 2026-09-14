@@ -1,101 +1,65 @@
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+{% extends 'base.html' %}
 
-    <div class="modal-dialog modal-dialog-centered">
+{% block title %}
+Iniciar sesión | LDJSystem
+{% endblock %}
 
-        <div class="modal-content border-0 shadow rounded-3">
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 bg-dark text-white p-4">
 
-            <!-- Encabezado del modal -->
-            <div class="modal-header bg-dark text-white border-0">
-
-                <div>
-                    <h2 class="modal-title fs-4 fw-bold" id="loginModalLabel">
-                        Iniciar sesión
-                    </h2>
-
-                    <p class="text-white-50 mb-0">
-                        Accede a tu cuenta de LDJSystem
-                    </p>
-                </div>
-
-                <!--
-                    btn-close-white adapta el botón de cierre
-                    para que sea visible sobre fondo oscuro.
-                -->
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar">
-                </button>
-
+            <div class="mb-4 text-center">
+                <h2 class="fw-bold">Iniciar sesión</h2>
+                <p class="text-white-50 mb-0">Accede a tu cuenta de LDJSystem</p>
             </div>
 
-            <!-- Contenido principal -->
-            <div class="modal-body p-4">
+            <!-- Mensaje de error del login -->
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
 
-                <!-- Mensaje de error del login -->
-                {% if error %}
-                <div class="alert alert-danger">
-                    {{ error }}
-                </div>
+            <!-- Formulario de inicio de sesión -->
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Campo oculto para conservar la redirección -->
+                {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
                 {% endif %}
 
-                <!-- Formulario de inicio de sesión -->
-                <form method="POST" action="{% url 'login' %}">
-                    {% csrf_token %}
-
-                    <!-- Usuario -->
-                    <div class="mb-3">
-
-                        <label for="username" class="form-label fw-semibold">
-                            Usuario
-                        </label>
-
-                        <input type="text" class="form-control" id="username" name="username"
-                            placeholder="Ingresa tu usuario" required>
-
-                    </div>
-
-                    <!-- Contraseña -->
-                    <div class="mb-4">
-
-                        <label for="password" class="form-label fw-semibold">
-                            Contraseña
-                        </label>
-
-                        <input type="password" class="form-control" id="password" name="password"
-                            placeholder="Ingresa tu contraseña" required>
-
-                    </div>
-
-                    <!-- Acción principal -->
-                    <div class="d-grid">
-
-                        <button type="submit" class="btn btn-success fw-semibold">
-                            Iniciar sesión
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-            <!-- Pie del modal -->
-            <div class="modal-footer border-0 justify-content-center pt-0">
-
-                <div class="text-center">
-
-                    <p class="text-secondary mb-2">
-                        ¿Todavía no tienes una cuenta?
-                    </p>
-
-                    <a href="{% url 'agregar_cliente' %}" class="btn btn-outline-success">
-                        Crear cuenta
-                    </a>
-
+                <!-- Usuario -->
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-semibold">Usuario</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Ingresa tu usuario" required>
                 </div>
 
+                <!-- Contraseña -->
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">Contraseña</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+
+                <!-- Acción principal -->
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-success fw-semibold py-2">
+                        Iniciar sesión
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Pie -->
+            <div class="text-center pt-3 border-top border-secondary">
+                <p class="text-white-50 mb-2">¿Todavía no tienes una cuenta?</p>
+                <a href="{% url 'agregar_cliente' %}" class="btn btn-outline-light btn-sm">
+                    Crear cuenta
+                </a>
             </div>
 
         </div>
-
     </div>
-
 </div>
+{% endblock %}
