@@ -45,13 +45,24 @@
 
 
     <!-- ==================================================
-         SISTEMA DE NOTIFICACIONES (Sin scripts personalizados)
+         SISTEMA DE NOTIFICACIONES DINÁMICO
     =================================================== -->
     <div class="container mt-3">
         {% if messages %}
         {% for message in messages %}
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-            <strong>¡Éxito!</strong> {{ message }}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'success' }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+            <strong>
+                {% if message.tags == 'error' or message.tags == 'danger' %}
+                    ¡Error!
+                {% elif message.tags == 'warning' %}
+                    ¡Atención!
+                {% elif message.tags == 'info' %}
+                    ¡Información!
+                {% else %}
+                    ¡Éxito!
+                {% endif %}
+            </strong> 
+            {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}

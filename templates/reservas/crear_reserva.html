@@ -7,11 +7,10 @@
 
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
     <h1 class="h2 mb-0">Nueva Reserva</h1>
-    <a href="{% url 'ver_reservas' %}" class="btn btn-secondary">← Volver al listado</a>
 </div>
 
 <div class="row g-4">
-    <!-- Columna Izquierda: Formulario -->
+    <!-- Columna Izquierda: Formulario reestructurado para flujo lógico UX -->
     <div class="col-lg-5">
         <div class="card bg-secondary text-white shadow-sm border-0 h-100">
             <div class="card-body p-3 p-md-4">
@@ -22,7 +21,32 @@
                 <form method="post" id="formCrearReserva">
                     {% csrf_token %}
 
-                    <!-- Campo oculto o selector de mesa -->
+                    <!-- 1. DISPOSITIVOS DE DISPONIBILIDAD: Primero fecha y personas -->
+                    <div class="mb-3">
+                        <label for="{{ form.fecha_hora_inicio.id_for_label }}" class="form-label fw-bold small mb-1">
+                            {{ form.fecha_hora_inicio.label }}
+                        </label>
+                        {{ form.fecha_hora_inicio }}
+                        {% if form.fecha_hora_inicio.errors %}
+                        <div class="text-warning small mt-1">
+                            {{ form.fecha_hora_inicio.errors|striptags }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.num_personas.id_for_label }}" class="form-label fw-bold small mb-1">
+                            {{ form.num_personas.label }}
+                        </label>
+                        {{ form.num_personas }}
+                        {% if form.num_personas.errors %}
+                        <div class="text-warning small mt-1">
+                            {{ form.num_personas.errors|striptags }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 2. SELECCIÓN ESPACIAL: Feedback del plano -->
                     <input type="hidden" name="mesa" id="id_mesa_seleccionada" required>
                     <div class="mb-3">
                         <label class="form-label fw-bold small mb-1">Mesa Seleccionada</label>
@@ -30,22 +54,68 @@
                             readonly value="Ninguna seleccionada (Elige en el plano)">
                     </div>
 
-                    <div class="row g-3">
-                        {% for field in form %}
-                        {% if field.name != 'mesa' %}
-                        <div class="{% if field.name == 'notas' %}col-12{% else %}col-12{% endif %}">
-                            <label for="{{ field.id_for_label }}" class="form-label fw-bold small mb-1">
-                                {{ field.label }}
-                            </label>
-                            {{ field }}
-                            {% if field.errors %}
-                            <div class="text-warning small mt-1">
-                                {{ field.errors|striptags }}
-                            </div>
-                            {% endif %}
+                    <!-- 3. DATOS DEL CLIENTE -->
+                    <div class="mb-3">
+                        <label for="{{ form.nombre_cliente.id_for_label }}" class="form-label fw-bold small mb-1">
+                            {{ form.nombre_cliente.label }}
+                        </label>
+                        {{ form.nombre_cliente }}
+                        {% if form.nombre_cliente.errors %}
+                        <div class="text-warning small mt-1">
+                            {{ form.nombre_cliente.errors|striptags }}
                         </div>
                         {% endif %}
-                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.telefono_cliente.id_for_label }}" class="form-label fw-bold small mb-1">
+                            {{ form.telefono_cliente.label }}
+                        </label>
+                        {{ form.telefono_cliente }}
+                        {% if form.telefono_cliente.errors %}
+                        <div class="text-warning small mt-1">
+                            {{ form.telefono_cliente.errors|striptags }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.correo_cliente.id_for_label }}" class="form-label fw-bold small mb-1">
+                            {{ form.correo_cliente.label }}
+                        </label>
+                        {{ form.correo_cliente }}
+                        {% if form.correo_cliente.errors %}
+                        <div class="text-warning small mt-1">
+                            {{ form.correo_cliente.errors|striptags }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.notas.id_for_label }}" class="form-label fw-bold small mb-1">
+                            {{ form.notas.label }}
+                        </label>
+                        {{ form.notas }}
+                        {% if form.notas.errors %}
+                        <div class="text-warning small mt-1">
+                            {{ form.notas.errors|striptags }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 4. CUMPLIMIENTO LEGAL -->
+                    <div class="mb-2 form-check">
+                        {{ form.acepta_privacidad }}
+                        <label class="form-check-label small" for="{{ form.acepta_privacidad.id_for_label }}">
+                            {{ form.acepta_privacidad.label }}
+                        </label>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.acepta_cookies }}
+                        <label class="form-check-label small" for="{{ form.acepta_cookies.id_for_label }}">
+                            {{ form.acepta_cookies.label }}
+                        </label>
                     </div>
 
                     <div class="d-flex flex-column flex-sm-row gap-2 mt-4 pt-3 border-top border-dark">
@@ -69,9 +139,12 @@
                             preserveAspectRatio="none" />
 
                         {% for mesa in mesas %}
-                        <g class="mesa-elemento" data-id="{{ mesa.id }}" data-capacidad="{{ mesa.capacidad }}"
-                            data-estado="{{ mesa.estado_visual }}" transform="translate({{ mesa.x }}, {{ mesa.y }})"
-                            style="user-select: none;">
+                        <g class="mesa-elemento {% if mesa.estado_visual == 'ocupada' %}mesa-ocupada{% else %}mesa-libre{% endif %}" 
+                           data-id="{{ mesa.id }}" 
+                           data-capacidad="{{ mesa.capacidad }}"
+                           data-estado="{{ mesa.estado_visual }}" 
+                           transform="translate({{ mesa.x }}, {{ mesa.y }})"
+                           style="user-select: none;">
 
                             {% if mesa.forma == 'redonda' %}
                             <circle cx="{% widthratio mesa.ancho 2 1 %}" cy="{% widthratio mesa.alto 2 1 %}"
@@ -86,8 +159,7 @@
                                 text-anchor="middle" dominant-baseline="middle" fill="#fff" pointer-events="none"
                                 font-weight="bold">
                                 <tspan x="{% widthratio mesa.ancho 2 1 %}" dy="-6">{{ mesa.nombre_interno }}</tspan>
-                                <tspan x="{% widthratio mesa.ancho 2 1 %}" dy="18" font-size="12" fill="#f8f9fa">{{
-                                    mesa.capacidad }} pers.</tspan>
+                                <tspan x="{% widthratio mesa.ancho 2 1 %}" dy="18" font-size="12" fill="#f8f9fa">{{ mesa.capacidad }} pers.</tspan>
                             </text>
                         </g>
                         {% endfor %}

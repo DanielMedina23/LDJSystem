@@ -11,68 +11,94 @@
       </a>
 
       <!-- Botón hamburguesa para móviles -->
-      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarLDJ"
-        aria-controls="navbarLDJ" aria-expanded="false" aria-label="Mostrar navegación">
+      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarLDJ" aria-controls="navbarLDJ" aria-expanded="false" aria-label="Mostrar navegación">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <!-- Contenedor colapsable del menú -->
       <div class="collapse navbar-collapse mt-3 mt-lg-0" id="navbarLDJ">
 
+        <!-- Enlaces principales alineados a la izquierda -->
+        <ul class="navbar-nav me-auto align-items-stretch align-items-lg-center gap-2">
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{% url 'inicio' %}">Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{% url 'crear_reserva' %}">Reservar Mesa</a>
+          </li>
+
+          <!-- Acceso a Trabajadores (Superusuario o grupo Administrador) -->
+          {% if request.user.is_authenticated %}
+          {% if request.user.is_superuser %}
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{% url 'ver_trabajadores' %}">Trabajadores</a>
+          </li>
+          {% else %}
+          {% for grupo in request.user.groups.all %}
+          {% if grupo.name == 'Administrador' %}
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{% url 'ver_trabajadores' %}">Trabajadores</a>
+          </li>
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+          {% endif %}
+
+          <!-- Opciones exclusivas para Empleados / Personal autorizado -->
+          {% if request.user.is_authenticated and request.user.is_staff %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-info fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Gestión Interna
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark">
+              <li><a class="dropdown-item" href="{% url 'ver_reservas' %}">Listado de Reservas</a></li>
+              <li><a class="dropdown-item" href="{% url 'ver_mesas' %}">Gestión de Mesas</a></li>
+              <li><a class="dropdown-item" href="{% url 'plano:ver_plano' %}">Plano Interactivo</a></li>
+            </ul>
+          </li>
+          {% endif %}
+        </ul>
+
+        <!-- Enlaces de usuario alineados a la derecha -->
         <ul class="navbar-nav ms-auto align-items-stretch align-items-lg-center gap-2">
 
           {% if request.user.is_authenticated %}
 
-            <!-- Acceso a Trabajadores (Superusuario o grupo Administrador) -->
-            {% if request.user.is_superuser %}
-              <li class="nav-item">
-                <a class="nav-link text-white text-center text-lg-start fw-semibold py-2 py-lg-1" href="{% url 'ver_trabajadores' %}">
-                  Trabajadores
-                </a>
-              </li>
-            {% else %}
-              {% for grupo in request.user.groups.all %}
-                {% if grupo.name == 'Administrador' %}
-                  <li class="nav-item">
-                    <a class="nav-link text-white text-center text-lg-start fw-semibold py-2 py-lg-1" href="{% url 'ver_trabajadores' %}">
-                      Trabajadores
-                    </a>
-                  </li>
-                {% endif %}
-              {% endfor %}
-            {% endif %}
+          <!-- Nombre de usuario / Mi Perfil -->
+          <li class="nav-item">
+            <a class="nav-link text-white text-center text-lg-start fw-semibold py-2 py-lg-1"
+              href="{% url 'ver_perfil' %}">
+              <i class="bi bi-person-circle me-1"></i>{{ request.user.first_name|default:request.user.username }}
+            </a>
+          </li>
 
-            <!-- Mi Perfil -->
-            <li class="nav-item">
-              <a class="nav-link text-white text-center text-lg-start fw-semibold py-2 py-lg-1" href="{% url 'ver_perfil' %}">
-                Mi perfil
-              </a>
-            </li>
-
-            <!-- Cierre de sesión -->
-            <li class="nav-item mt-2 mt-lg-0">
-              <form method="POST" action="{% url 'logout' %}" class="m-0 d-grid d-lg-block">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light w-100">
-                  Cerrar sesión
-                </button>
-              </form>
-            </li>
+          <!-- Cierre de sesión -->
+          <li class="nav-item mt-2 mt-lg-0">
+            <form method="POST" action="{% url 'logout' %}" class="m-0 d-grid d-lg-block">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-light w-100">
+                Cerrar sesión
+              </button>
+            </form>
+          </li>
 
           {% else %}
 
-            <!-- Opciones para usuarios no autenticados -->
-            <li class="nav-item">
-              <button type="button" class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#loginModal">
-                Iniciar sesión
-              </button>
-            </li>
+          <!-- Opciones para usuarios no autenticados -->
+          <li class="nav-item">
+            <button type="button" class="btn btn-outline-light w-100" data-bs-toggle="modal"
+              data-bs-target="#loginModal">
+              Iniciar sesión
+            </button>
+          </li>
 
-            <li class="nav-item">
-              <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#registroModal">
-                Registrarse
-              </button>
-            </li>
+          <li class="nav-item">
+            <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#registroModal">
+              Registrarse
+            </button>
+          </li>
 
           {% endif %}
 

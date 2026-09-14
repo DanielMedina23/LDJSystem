@@ -1,21 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}Eliminar mesa{% endblock %}
+{% block title %}Eliminar mesa - LDJSystem{% endblock %}
 
 {% block content %}
-<h1>Eliminar mesa</h1>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 border-top border-danger border-4">
+                <div class="card-body p-4 p-md-5">
+                    <h1 class="h3 mb-3 text-danger fw-bold">Eliminar mesa</h1>
+                    <p class="text-muted small mb-4">¿Estás seguro de que deseas eliminar esta mesa de forma permanente del sistema?</p>
 
-<p>¿Estás seguro de que deseas eliminar esta mesa?</p>
+                    <div class="bg-light p-3 rounded mb-4">
+                        <ul class="list-unstyled mb-0 small">
+                            <li class="mb-1"><strong>ID:</strong> #{{ mesa.id }}</li>
+                            <li class="mb-1"><strong>Número:</strong> Mesa {{ mesa.numero }}</li>
+                            <li><strong>Capacidad:</strong> {{ mesa.capacidad }} personas</li>
+                        </ul>
+                    </div>
 
-<ul>
-    <li><strong>ID:</strong> {{ mesa.id }}</li>
-    <li><strong>Número:</strong> {{ mesa.numero }}</li>
-    <li><strong>Capacidad:</strong> {{ mesa.capacidad }}</li>
-</ul>
-
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Sí, eliminar</button>
-    <a href="{% url 'ver_mesas' %}">Cancelar</a>
-</form>
+                    <form method="post" class="d-flex justify-content-between align-items-center">
+                        {% csrf_token %}
+                        <a href="{% url 'ver_mesas' %}" class="btn btn-outline-secondary btn-sm px-3">Cancelar</a>
+                        <button type="submit" class="btn btn-danger btn-sm px-4 fw-bold">Sí, eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

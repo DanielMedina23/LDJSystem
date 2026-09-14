@@ -1,15 +1,54 @@
 {% extends 'base.html' %}
 
-{% block title %}Editar mesa{% endblock %}
+{% block title %}Editar mesa - LDJSystem{% endblock %}
 
 {% block content %}
-<h1>Editar mesa</h1>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-2 fw-bold">Editar mesa</h1>
+                <p class="text-muted small mb-4">Modifica los parámetros operativos de la mesa seleccionada.</p>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Actualizar</button>
-</form>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-secondary">{{ field.label }}</label>
+                            
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="form-check form-switch mt-1">
+                                    {{ field }}
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
 
-<a href="{% url 'ver_mesas' %}">Volver</a>
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-2">
+                        <a href="{% url 'ver_mesas' %}" class="btn btn-outline-secondary btn-sm px-3">Cancelar</a>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("input[type='text'], input[type='number'], select, textarea").forEach(element => {
+            element.classList.add("form-control");
+        });
+        document.querySelectorAll("input[type='checkbox']").forEach(element => {
+            element.classList.add("form-check-input");
+        });
+    });
+</script>
 {% endblock %}

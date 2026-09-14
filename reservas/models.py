@@ -7,6 +7,20 @@ from usuarios.models import Usuario
 from negocio.models import Mesa
 
 
+class ReservaQuerySet(models.QuerySet):
+    """QuerySet personalizado para agrupar operaciones masivas de reservas."""
+    
+    def finalizar_reservas_fin_dia(self):
+        """Cierra automáticamente todas las reservas abiertas de fechas pasadas."""
+        ayer = timezone.now().date()
+        estados_abiertos = ['activa', 'pendiente_confirmacion', 'confirmada', 'en_curso']
+        
+        return self.filter(
+            fecha_hora_inicio__date__lt=ayer,
+            estado__in=estados_abiertos
+        ).update(estado='finalizada')
+
+
 class Reserva(models.Model):
 
     ESTADOS = [
@@ -32,6 +46,8 @@ class Reserva(models.Model):
     notas                   = models.TextField(blank=True, null=True)
     token_confirmacion      = models.CharField(max_length=100, blank=True, null=True)
     expiracion_confirmacion = models.DateTimeField(blank=True, null=True)
+    
+    objects                 = ReservaQuerySet.as_manager()
     
     def save(self, *args, **kwargs):
         if self.fecha_hora_inicio and not self.fecha_hora_fin:
