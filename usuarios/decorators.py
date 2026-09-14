@@ -1,7 +1,10 @@
+from functools import wraps
 from django.shortcuts import redirect
+
 
 def administrador_required(view_func):
 
+    @wraps(view_func)
     def validar_acceso(request, *args, **kwargs):
 
         if request.user.is_superuser:
@@ -14,9 +17,10 @@ def administrador_required(view_func):
 
     return validar_acceso
 
-#DECORADOR PARA LOS EMPLEADOS
+
 def personal_required(view_func):
 
+    @wraps(view_func)
     def validar_acceso(request, *args, **kwargs):
 
         if request.user.is_superuser:
