@@ -7,13 +7,24 @@ from django.contrib import messages
 
 
 # ==================================================
-# GESTIÓN DE NEGOCIO
+# GESTIÓN DE NEGOCIO (VISTA PÚBLICA / ADMIN)
 # ==================================================
 
-@personal_required
 def ver_negocio(request):
     negocio = Negocio.objects.first()
-    return render(request, 'negocio/ver_negocio.html', {'negocio': negocio})
+    
+    # Mapeamos para obtener solo el último o único horario por día de la semana
+    horarios_dict = {}
+    for h in Horario.objects.all():
+        horarios_dict[h.dia_semana] = h
+        
+    dias_ordenados = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
+    horarios = [horarios_dict[dia] for dia in dias_ordenados if dia in horarios_dict]
+    
+    return render(request, 'negocio/ver_negocio.html', {
+        'negocio': negocio,
+        'horarios': horarios
+    })
 
 
 @personal_required
@@ -101,13 +112,25 @@ def eliminar_mesa(request, id):
 
 
 # ==================================================
-# GESTIÓN DE HORARIOS
+# GESTIÓN DE HORARIOS (VISTA PÚBLICA / ADMIN)
 # ==================================================
 
-@personal_required
 def ver_horarios(request):
-    horarios = Horario.objects.all().order_by("id")
-    return render(request, 'negocio/ver_horarios.html', {'horarios': horarios})
+    dias_ordenados = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
+    horarios_dict = {h.dia_semana: h for h in Horario.objects.all()}
+    
+    horarios_semana = []
+    for dia_key in dias_ordenados:
+        horario_obj = horarios_dict.get(dia_key)
+        # Obtenemos la etiqueta legible del choices del modelo
+        dia_display = dict(Horario.DIAS_SEMANA).get(dia_key)
+        horarios_semana.append({
+            'dia_key': dia_key,
+            'dia_display': dia_display,
+            'horario': horario_obj
+        })
+
+    return render(request, 'horario/ver_horarios.html', {'horarios_semana': horarios_semana})
 
 
 @personal_required
@@ -117,7 +140,7 @@ def crear_horario(request):
         form.save()
         return redirect('ver_horarios')
 
-    return render(request, 'negocio/crear_horario.html', {'form': form})
+    return render(request, 'horario/crear_horario.html', {'form': form})
 
 
 @personal_required
@@ -128,7 +151,7 @@ def editar_horario(request, id):
         form.save()
         return redirect('ver_horarios')
 
-    return render(request, 'negocio/editar_horario.html', {'form': form})
+    return render(request, 'horario/editar_horario.html', {'form': form})
 
 
 @personal_required
@@ -138,4 +161,4 @@ def eliminar_horario(request, id):
         horario.delete()
         return redirect('ver_horarios')
 
-    return render(request, 'negocio/eliminar_horario.html', {'horario': horario})
+    return render(request, 'horario/eliminar_horario.html', {'horario': horario})

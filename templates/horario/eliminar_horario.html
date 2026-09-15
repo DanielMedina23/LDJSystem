@@ -3,20 +3,28 @@
 {% block title %}Eliminar horario{% endblock %}
 
 {% block content %}
-<h1>Eliminar horario</h1>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5 text-center">
+                    
+                    <h2 class="mb-3 fw-bold text-danger">Eliminar horario</h2>
+                    <p class="text-muted mb-4">¿Estás seguro de que deseas eliminar el horario del día <strong>{{ horario.get_dia_semana_display }}</strong> ({{ horario.hora_apertura|time:"H:i" }} - {{ horario.hora_cierre|time:"H:i" }})?</p>
 
-<p>¿Estás seguro de que deseas eliminar este horario?</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'ver_horarios' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                            <button type="submit" class="btn btn-danger px-4">Sí, eliminar</button>
+                        </div>
+                    </form>
 
-<ul>
-    <li><strong>ID:</strong> {{ horario.id }}</li>
-    <li><strong>Día:</strong> {{ horario.dia }}</li>
-    <li><strong>Apertura:</strong> {{ horario.hora_apertura }}</li>
-    <li><strong>Cierre:</strong> {{ horario.hora_cierre }}</li>
-</ul>
+                </div>
+            </div>
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Sí, eliminar</button>
-    <a href="{% url 'ver_horarios' %}">Cancelar</a>
-</form>
-{% endblock 
+        </div>
+    </div>
+</div>
+{% endblock %}

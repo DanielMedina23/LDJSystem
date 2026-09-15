@@ -3,13 +3,45 @@
 {% block title %}Editar horario{% endblock %}
 
 {% block content %}
-<h1>Editar horario</h1>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <h2 class="mb-4 fw-bold text-center">Editar horario</h2>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Actualizar</button>
-</form>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Campos del formulario con clases Bootstrap -->
+                        <div class="mb-3">
+                            <label for="{{ form.dia_semana.id_for_label }}" class="form-label fw-semibold">Día de la semana</label>
+                            {{ form.dia_semana }}
+                        </div>
 
-<a href="{% url 'ver_horarios' %}">Volver</a>
+                        <div class="mb-3">
+                            <label for="{{ form.hora_apertura.id_for_label }}" class="form-label fw-semibold">Apertura</label>
+                            {{ form.hora_apertura }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.hora_cierre.id_for_label }}" class="form-label fw-semibold">Cierre</label>
+                            {{ form.hora_cierre }}
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'ver_horarios' %}" class="btn btn-outline-secondary px-4">Volver</a>
+                            <button type="submit" class="btn btn-primary px-4">Actualizar</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 {% endblock %}

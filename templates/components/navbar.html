@@ -25,6 +25,9 @@
             <a class="nav-link text-white fw-semibold" href="{% url 'inicio' %}">Inicio</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{% url 'ver_negocio' %}">Sobre nosotros</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link text-white fw-semibold" href="{% url 'crear_reserva' %}">Reservar Mesa</a>
           </li>
 
@@ -55,6 +58,7 @@
             <ul class="dropdown-menu dropdown-menu-dark">
               <li><a class="dropdown-item" href="{% url 'ver_reservas' %}">Listado de Reservas</a></li>
               <li><a class="dropdown-item" href="{% url 'ver_mesas' %}">Gestión de Mesas</a></li>
+              <li><a class="dropdown-item" href="{% url 'ver_horarios' %}">Gestión de Horarios</a></li>
               <li><a class="dropdown-item" href="{% url 'plano:ver_plano' %}">Plano Interactivo</a></li>
             </ul>
           </li>
@@ -73,7 +77,7 @@
               <i class="bi bi-person-circle me-1"></i>{{ request.user.first_name|default:request.user.username }}
             </a>
           </li>
-          
+
           <!--Boton para cerrar sesion -->
           <li class="nav-item">
             <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"

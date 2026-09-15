@@ -3,30 +3,44 @@
 {% block title %}Horarios{% endblock %}
 
 {% block content %}
-<h1>Listado de horarios</h1>
+<div class="container my-4" style="max-width: 800px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Horarios de Atención</h2>
+    </div>
 
-<a href="{% url 'crear_horario' %}">Crear nuevo horario</a>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <tbody>
+                        {% for item in horarios_semana %}
+                        <tr>
+                            <td class="fw-semibold text-capitalize ps-4 py-3" style="width: 30%;">
+                                {{ item.dia_display }}
+                            </td>
+                            <td class="py-3" style="width: 45%;">
+                                {% if item.horario %}
+                                    <span class="text-dark">{{ item.horario.hora_apertura|time:"H:i" }} – {{ item.horario.hora_cierre|time:"H:i" }}</span>
+                                {% else %}
+                                    <span class="text-muted fst-italic">Cerrado / No configurado</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4 py-3" style="width: 25%;">
+                                {% if item.horario %}
+                                    <a href="{% url 'editar_horario' item.horario.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                    <a href="{% url 'eliminar_horario' item.horario.id %}" class="btn btn-sm btn-outline-danger ms-1">Eliminar</a>
+                                {% else %}
+                                    <a href="{% url 'crear_horario' %}" class="btn btn-sm btn-success">Configurar</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Día</th>
-        <th>Hora apertura</th>
-        <th>Hora cierre</th>
-        <th>Acciones</th>
-    </tr>
-
-    {% for horario in horarios %}
-    <tr>
-        <td>{{ horario.id }}</td>
-        <td>{{ horario.dia }}</td>
-        <td>{{ horario.hora_apertura }}</td>
-        <td>{{ horario.hora_cierre }}</td>
-        <td>
-            <a href="{% url 'editar_horario' horario.id %}">Editar</a>
-            <a href="{% url 'eliminar_horario' horario.id %}">Eliminar</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+</div>
 {% endblock %}

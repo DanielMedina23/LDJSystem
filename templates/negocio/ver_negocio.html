@@ -1,15 +1,138 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Negocio{% endblock %}
+{% block title %}Nuestro Local - {{ negocio.nombre|default:"LDJSystem" }}{% endblock %}
 
 {% block content %}
-<h1>Información del negocio</h1>
+<div class="about-container" style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
 
-<p><strong>Documento:</strong> {{ negocio.nombre }}</p>
-<p><strong>Nombre:</strong> {{ negocio.descripcion }}</p>
-<p><strong>Dirección:</strong> {{ negocio.direccion }}</p>
-<p><strong>Activo:</strong> {{ negocio.telefono }}</p>
+    <!-- CARRUSEL SUPERIOR -->
+    <div class="carousel-container"
+        style="position: relative; max-width: 100%; height: 400px; margin-bottom: 3rem; overflow: hidden; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.15);">
+        <div class="carousel-slide"
+            style="display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out;">
+            <img src="{% static 'img/local.png' %}" alt="Salón Principal"
+                style="width: 100%; height: 100%; object-fit: cover; flex-shrink: 0;">
+            <img src="{% static 'img/barra.png' %}" alt="Zona de Barra"
+                style="width: 100%; height: 100%; object-fit: cover; flex-shrink: 0;">
+            <img src="{% static 'img/terraza.jpg' %}" alt="Terraza Exterior"
+                style="width: 100%; height: 100%; object-fit: cover; flex-shrink: 0;">
+        </div>
+        <button onclick="moveSlide(-1)"
+            style="position: absolute; top: 50%; left: 15px; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 50%; font-size: 1.2rem;">&#10094;</button>
+        <button onclick="moveSlide(1)"
+            style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 50%; font-size: 1.2rem;">&#10095;</button>
+    </div>
 
-<a href="{% url 'editar_negocio' negocio.id %}">Editar negocio</a>
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 3;
+        function moveSlide(direction) {
+            currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+            const slideContainer = document.querySelector('.carousel-slide');
+            slideContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+        setInterval(() => { moveSlide(1); }, 5000);
+    </script>
+
+    <!-- CABECERA INSTITUCIONAL -->
+    <section class="about-header" style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">"Sobre Nosotros" </h1>
+        <p style="font-size: 1.2rem; color: #666;">"Un espacio diseñado para ofrecerte la
+            mejor experiencia culinaria y de entretenimiento en León."</p>
+    </section>
+
+    <!-- INFORMACIÓN Y CONTACTO -->
+    <section class="about-details"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem; background: #f9f9f9; padding: 2rem; border-radius: 8px;">
+        <div>
+            <h3 style="margin-bottom: 1rem; border-bottom: 2px solid #333; padding-bottom: 0.5rem;">Ubicación y Contacto
+            </h3>
+            <p><strong>Dirección:</strong> {{ negocio.direccion|default:"Dirección no especificada" }}</p>
+            <p><strong>Teléfono:</strong> {{ negocio.telefono|default:"Teléfono no disponible" }}</p>
+        </div>
+        <div>
+            <h3 style="margin-bottom: 1rem; border-bottom: 2px solid #333; padding-bottom: 0.5rem;">Nuestro Compromiso
+            </h3>
+            <p>Nos enfocamos en la calidad, la cercanía y la atención al detalle. Cada visita busca ser memorable,
+                garantizando un ambiente acogedor y un servicio impecable para ti y los tuyos.</p>
+        </div>
+    </section>
+
+    <!-- HORARIOS DE APERTURA -->
+    <section class="about-horarios" style="margin-bottom: 4rem; text-align: center;">
+        <h3 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 2rem; color: #222;">Horarios de Atención</h3>
+        
+        {% if horarios %}
+        <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eaeaea;">
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for horario in horarios %}
+                <li style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #f2f2f2; font-size: 1rem;">
+                    <span style="font-weight: 600; color: #333; text-transform: capitalize;">{{ horario.get_dia_semana_display }}</span>
+                    <span style="color: #666; font-weight: 500;">{{ horario.hora_apertura|time:"H:i" }} – {{ horario.hora_cierre|time:"H:i" }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <p style="color: #666; margin: 0;">No hay horarios especificados por el momento.</p>
+        {% endif %}
+
+        {% if request.user.is_authenticated and request.user.is_staff %}
+        <div style="margin-top: 1.5rem;">
+            <a href="{% url 'ver_horarios' %}" style="font-size: 0.9rem; color: #0066cc; text-decoration: none; font-weight: 500;">Gestionar horarios en el panel</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- TRES TARJETAS INFERIORES -->
+    <section class="about-gallery" style="margin-bottom: 3rem;">
+        <h2 style="text-align: center; margin-bottom: 1.5rem;">Conoce el Local</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #fff;">
+                <img src="{% static 'img/local.png' %}" alt="Local Principal"
+                    style="width: 100%; height: 220px; object-fit: cover;">
+                <div style="padding: 1rem;">
+                    <h4 style="margin: 0 0 0.5rem 0;">Salón Principal</h4>
+                    <p style="font-size: 0.9rem; color: #666; margin: 0;">Espacio amplio y acondicionado para disfrutar
+                        al máximo.</p>
+                </div>
+            </div>
+            <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #fff;">
+                <img src="{% static 'img/barra.png' %}" alt="Zona de Barra"
+                    style="width: 100%; height: 220px; object-fit: cover;">
+                <div style="padding: 1rem;">
+                    <h4 style="margin: 0 0 0.5rem 0;">Zona de Barra</h4>
+                    <p style="font-size: 0.9rem; color: #666; margin: 0;">Perfecto para un trago rápido o picoteo
+                        distendido.</p>
+                </div>
+            </div>
+            <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); background: #fff;">
+                <img src="{% static 'img/terraza.jpg' %}" alt="Terraza Exterior"
+                    style="width: 100%; height: 220px; object-fit: cover;">
+                <div style="padding: 1rem;">
+                    <h4 style="margin: 0 0 0.5rem 0;">Terraza</h4>
+                    <p style="font-size: 0.9rem; color: #666; margin: 0;">Disfruta de un ambiente agradable al aire
+                        libre.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOTÓN DE EDICIÓN (ADMIN) -->
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <div style="text-align: center; margin-top: 2rem;">
+        {% if negocio and negocio.id %}
+        <a href="{% url 'editar_negocio' negocio.id %}" class="btn"
+            style="padding: 0.5rem 1.5rem; background: #333; color: #fff; text-decoration: none; border-radius: 4px;">Editar
+            información del local</a>
+        {% else %}
+        <a href="{% url 'crear_negocio' %}" class="btn"
+            style="padding: 0.5rem 1.5rem; background: #007bff; color: #fff; text-decoration: none; border-radius: 4px;">Registrar
+            datos del negocio</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
 {% endblock %}
-
