@@ -116,4 +116,26 @@ class EditarPerfilForm(forms.ModelForm):
             'username',
             'email',
             'telefono',
+            'dni',
         ]
+
+        widgets = {
+            'username': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Nombre de usuario'
+                }
+            ),
+            'email': forms.EmailInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'correo@ejemplo.com'
+                }
+            ),
+            'telefono': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Teléfono'
+                }
+            ),
+        }

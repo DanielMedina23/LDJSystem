@@ -1,0 +1,152 @@
+<<<<<<< HEAD
+=======
+<!--
+    Modal para editar los datos del perfil.
+
+    Este archivo se incluye dentro de perfil.html,
+    por eso no necesita extender base.html.
+-->
+<div class="modal fade" id="editarPerfilModal" tabindex="-1" aria-labelledby="editarPerfilModalLabel"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content border-0 shadow-sm">
+
+            <!-- Encabezado -->
+            <div class="modal-header bg-dark text-white border-0 p-4">
+
+                <div>
+                    <h1 class="h3 fw-bold mb-1" id="editarPerfilModalLabel">
+                        Editar perfil
+                    </h1>
+
+                    <p class="text-white-50 mb-0">
+                        Modifica la información de tu cuenta.
+                    </p>
+                </div>
+
+                <!-- Cerrar modal -->
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar">
+                </button>
+
+            </div>
+
+
+            <!-- Formulario -->
+            <form form method="POST" action="{% url 'editar_perfil' %}">
+
+                {% csrf_token %}
+
+                <div class="modal-body p-4">
+
+                    <!-- Nombre de usuario -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.username.id_for_label }}" class="form-label fw-semibold">
+                            Nombre de usuario
+                        </label>
+
+                        {{ formulario.username }}
+
+                        {% if formulario.username.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.username.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- DNI / NIE -->
+                    <div class="mb-3">
+
+                        <label class="form-label fw-semibold">
+                            DNI/NIE
+                        </label>
+
+                        <!--
+                            Mostramos el DNI/NIE directamente desde el usuario.
+
+                            No pertenece al formulario porque este dato
+                            no se puede modificar desde el perfil.
+                        -->
+                        <input type="text" class="form-control" value="{{ usuario.dni|default:'No registrado' }}"
+                            readonly>
+
+                        <div class="form-text">
+                            El DNI/NIE no puede modificarse desde el perfil.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Email -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.email.id_for_label }}" class="form-label fw-semibold">
+                            Email
+                        </label>
+
+                        {{ formulario.email }}
+
+                        {% if formulario.email.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.email.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Teléfono -->
+                    <div class="mb-3">
+
+                        <label for="{{ formulario.telefono.id_for_label }}" class="form-label fw-semibold">
+                            Teléfono
+                        </label>
+
+                        {{ formulario.telefono }}
+
+                        {% if formulario.telefono.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ formulario.telefono.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Errores generales -->
+                    {% if formulario.non_field_errors %}
+
+                    <div class="alert alert-danger">
+                        {{ formulario.non_field_errors }}
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Acciones -->
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        Guardar cambios
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+>>>>>>> cfe1d88 (fix: corregir edicion del perfil de usuario)
