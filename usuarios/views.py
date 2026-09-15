@@ -57,7 +57,7 @@ def crear_trabajador(request):
     # solo puede crear empleados
     if not request.user.is_superuser:
         formulario.fields['grupo'].choices = [
-            ('Empleado', 'Empleado')
+            ('Trabajador', 'Trabajador')
         ]
 
     if request.method == 'POST' and formulario.is_valid():
@@ -78,10 +78,10 @@ def crear_trabajador(request):
 def ver_trabajadores(request):
 
     if request.user.is_superuser:
-        trabajadores = Usuario.objects.filter(groups__name__in = ['Administrador', 'Empleado']).distinct()
+        trabajadores = Usuario.objects.filter(groups__name__in = ['Jefes', 'Trabajadores']).distinct()
 
     else:
-        trabajadores = Usuario.objects.filter(groups__name = 'Empleado')
+        trabajadores = Usuario.objects.filter(groups__name = 'Trabajadores')
 
     return render(request, 'usuarios/trabajador/ver_trabajadores.html', {'trabajadores': trabajadores})
 
@@ -89,19 +89,10 @@ def ver_trabajadores(request):
 @administrador_required
 def editar_trabajador(request, id):
 
-    if request.user.is_superuser:
-        trabajador = get_object_or_404(
-            Usuario,
-            id=id,
-            groups__name__in=['Administrador', 'Empleado']
-        )
-
-    else:
-        trabajador = get_object_or_404(
-            Usuario,
-            id=id,
-            groups__name='Empleado'
-        )
+    trabajador = get_object_or_404(
+        Usuario,
+        id=id
+    )
 
     if request.method == 'POST':
 
@@ -109,6 +100,7 @@ def editar_trabajador(request, id):
             request.POST,
             instance=trabajador
         )
+
         if not request.user.is_superuser:
             formulario.fields['grupo'].choices = [
                 ('Empleado', 'Empleado')
@@ -119,7 +111,10 @@ def editar_trabajador(request, id):
             trabajador = formulario.save()
 
             grupo_seleccionado = formulario.cleaned_data['grupo']
-            grupo = Group.objects.get(name=grupo_seleccionado)
+
+            grupo = Group.objects.get(
+                name=grupo_seleccionado
+            )
 
             trabajador.groups.clear()
             trabajador.groups.add(grupo)
@@ -136,28 +131,36 @@ def editar_trabajador(request, id):
                 'grupo': grupo_actual.name if grupo_actual else ''
             }
         )
+
         if not request.user.is_superuser:
             formulario.fields['grupo'].choices = [
                 ('Empleado', 'Empleado')
             ]
 
-    return render(request, 'usuarios/trabajador/editar_trabajador.html', {'formulario': formulario})
+    return render(
+        request,
+        'usuarios/trabajador/editar_trabajador.html',
+        {
+            'formulario': formulario,
+            'trabajador': trabajador
+        }
+    )
 
 #Eliminar Trabajador
 @administrador_required
 def eliminar_trabajador(request, id):
 
-    if request.user.is_superuser:
-        trabajador = get_object_or_404(Usuario, id = id, groups__name__in=['Administrador', 'Empleado'])
-
-    else:
-        trabajador = get_object_or_404(Usuario, id = id, groups__name='Empleado')
+    trabajador = get_object_or_404(Usuario, id=id)
 
     if request.method == 'POST':
         trabajador.delete()
         return redirect('ver_trabajadores')
 
-    return render(request, 'usuarios/trabajador/eliminar_trabajador.html', {'trabajador': trabajador})
+    return render(
+        request,
+        'usuarios/trabajador/eliminar_trabajador.html',
+        {'trabajador': trabajador}
+    )
 
 #FIN TRABAJADORES
 

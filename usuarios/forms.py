@@ -35,8 +35,8 @@ class RegistroTrabajadorForm(UserCreationForm):
 
     #Creo la lista de posibles rolea a crear por parte del dueño
     GRUPOS = [
-        ("Administrador", "Administrador"),
-        ("Empleado", "Empleado"),
+        ("Jefes", "Jefes"),
+        ("Trabajadores", "Trabajadores"),
     ]
     #Estructura de como se va  a mostrar el campo
     grupo = forms.ChoiceField(choices = GRUPOS, label = "Rol",  widget=forms.Select(attrs = {'class': 'form-select'}))
@@ -74,8 +74,8 @@ class RegistroTrabajadorForm(UserCreationForm):
 class EditarTrabajadorForm(forms.ModelForm):
 
     GRUPOS = [
-        ("Administrador", "Administrador"),
-        ("Empleado", "Empleado"),
+        ("Jefes", "Jefes"),
+        ("Trabajadores", "Trabajadores"),
     ]
 
     grupo = forms.ChoiceField(
@@ -116,4 +116,26 @@ class EditarPerfilForm(forms.ModelForm):
             'username',
             'email',
             'telefono',
+            'dni',
         ]
+
+        widgets = {
+            'username': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Nombre de usuario'
+                }
+            ),
+            'email': forms.EmailInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'correo@ejemplo.com'
+                }
+            ),
+            'telefono': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Teléfono'
+                }
+            ),
+        }

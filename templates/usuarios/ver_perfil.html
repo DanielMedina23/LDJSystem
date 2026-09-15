@@ -11,9 +11,10 @@ Mi perfil | LDJSystem
     Centramos la tarjeta y limitamos su ancho
     para mejorar la presentación.
 -->
-<div class="row justify-content-center">
+    <!-- Centra el contenido horizontalmente -->
+    <div class="row justify-content-center">
 
-    <div class="col-md-8 col-lg-6">
+        <div class="col-md-6 col-lg-5">
 
         <!-- Tarjeta principal del perfil -->
         <div class="card border-0 shadow-sm">
@@ -33,7 +34,7 @@ Mi perfil | LDJSystem
 
 
             <!-- Información del usuario -->
-            <div class="card-body p-4">
+            <div class="card-body p-6">
 
                 <!-- Nombre de usuario -->
                 <div class="mb-3">
@@ -75,7 +76,7 @@ Mi perfil | LDJSystem
                     </p>
 
                     <p class="fw-semibold mb-0">
-                        {{ usuario.telefono }}
+                        {{ usuario.telefono|default:"No especificado" }}
                     </p>
 
                 </div>

@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Mesa
 
-# Register your models here.
+@admin.register(Mesa)
+class MesaAdmin(admin.ModelAdmin):
+    list_display = ("id", "nombre_interno", "capacidad", "activa")

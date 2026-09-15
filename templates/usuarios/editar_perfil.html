@@ -1,39 +1,42 @@
-{% extends "base.html" %}
+<!--
+    Modal para editar los datos del perfil.
 
-{% block title %}
-Editar trabajador | LDJSystem
-{% endblock %}
+    Este archivo se incluye dentro de perfil.html,
+    por eso no necesita extender base.html.
+-->
+<div class="modal fade" id="editarPerfilModal" tabindex="-1" aria-labelledby="editarPerfilModalLabel"
+    aria-hidden="true">
 
-{% block content %}
+    <div class="modal-dialog modal-dialog-centered modal-lg">
 
-<div class="row justify-content-center">
+        <div class="modal-content border-0 shadow-sm">
 
-    <div class="col-md-9 col-lg-7">
+            <!-- Encabezado -->
+            <div class="modal-header bg-dark text-white border-0 p-4">
 
-        <!-- Tarjeta principal -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-dark text-white border-0 p-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-1" id="editarPerfilModalLabel">
+                        Editar perfil
+                    </h1>
 
-                <h1 class="h3 fw-bold mb-1">
-                    Editar trabajador
-                </h1>
+                    <p class="text-white-50 mb-0">
+                        Modifica la información de tu cuenta.
+                    </p>
+                </div>
 
-                <p class="text-white-50 mb-0">
-                    Modifica la información de la cuenta seleccionada.
-                </p>
+                <!-- Cerrar modal -->
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar">
+                </button>
 
             </div>
 
 
-            <!-- =================================================
-                 FORMULARIO
-            ================================================== -->
-            <div class="card-body p-4">
+            <!-- Formulario -->
+            <form method="POST" action="{% url 'editar_perfil' %}">
 
-                <form method="POST">
+                {% csrf_token %}
 
-                    {% csrf_token %}
-
+                <div class="modal-body p-4">
 
                     <!-- Nombre de usuario -->
                     <div class="mb-3">
@@ -56,17 +59,22 @@ Editar trabajador | LDJSystem
                     <!-- DNI / NIE -->
                     <div class="mb-3">
 
-                        <label for="{{ formulario.dni.id_for_label }}" class="form-label fw-semibold">
+                        <label class="form-label fw-semibold">
                             DNI/NIE
                         </label>
 
-                        {{ formulario.dni }}
+                        <!--
+                            Mostramos el DNI/NIE directamente desde el usuario.
 
-                        {% if formulario.dni.errors %}
-                        <div class="text-danger small mt-1">
-                            {{ formulario.dni.errors }}
+                            No pertenece al formulario porque este dato
+                            no se puede modificar desde el perfil.
+                        -->
+                        <input type="text" class="form-control" value="{{ usuario.dni|default:'No registrado' }}"
+                            readonly>
+
+                        <div class="form-text">
+                            El DNI/NIE no puede modificarse desde el perfil.
                         </div>
-                        {% endif %}
 
                     </div>
 
@@ -107,25 +115,7 @@ Editar trabajador | LDJSystem
                     </div>
 
 
-                    <!-- Rol -->
-                    <div class="mb-4">
-
-                        <label for="{{ formulario.grupo.id_for_label }}" class="form-label fw-semibold">
-                            Rol
-                        </label>
-
-                        {{ formulario.grupo }}
-
-                        {% if formulario.grupo.errors %}
-                        <div class="text-danger small mt-1">
-                            {{ formulario.grupo.errors }}
-                        </div>
-                        {% endif %}
-
-                    </div>
-
-
-                    <!-- Errores generales del formulario -->
+                    <!-- Errores generales -->
                     {% if formulario.non_field_errors %}
 
                     <div class="alert alert-danger">
@@ -134,32 +124,26 @@ Editar trabajador | LDJSystem
 
                     {% endif %}
 
+                </div>
 
-                    <!-- =================================================
-                         ACCIONES
-                    ================================================== -->
-                    <div class="d-flex gap-2">
 
-                        <!-- Acción principal -->
-                        <button type="submit" class="btn btn-success fw-semibold">
-                            Guardar cambios
-                        </button>
+                <!-- Acciones -->
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
 
-                        <!-- Regresa al listado -->
-                        <a href="{% url 'ver_trabajadores' %}" class="btn btn-outline-secondary">
-                            Cancelar
-                        </a>
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        Guardar cambios
+                    </button>
 
-                    </div>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
 
-                </form>
+                </div>
 
-            </div>
+            </form>
 
         </div>
 
     </div>
 
 </div>
-
-{% endblock %}
