@@ -20,6 +20,7 @@ from negocio.models import Mesa
 from plano.models import MesaBloqueo
 from usuarios.decorators import personal_required
 from django.core.management.base import BaseCommand
+from .decorators import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -309,6 +310,7 @@ def finalizar_reserva(request, pk):
 
 
 @require_GET
+@rate_limit(max_requests=45, window_seconds=60)
 def disponibilidad_mesas(request):
     """
     Endpoint JSON que retorna las IDs de las mesas disponibles dada una fecha y número de comensales.
@@ -321,16 +323,23 @@ def disponibilidad_mesas(request):
     try:
         num_personas = int(num_personas)
         if num_personas < 1:
+            logger.warning(f"SECURITY: Intento de consulta de disponibilidad con comensales inválidos: {num_personas}")
             return JsonResponse({"ok": False, "error": "Número de personas inválido."}, status=400)
     except (TypeError, ValueError):
+        logger.warning(f"SECURITY: Parámetro num_personas malformado en disponibilidad: {num_personas}")
         return JsonResponse({"ok": False, "error": "Número de personas inválido."}, status=400)
 
     inicio = parse_datetime(fecha) if fecha else None
     if inicio is None:
+        logger.warning(f"SECURITY: Parámetro fecha_hora_inicio malformado o ausente: {fecha}")
         return JsonResponse({"ok": False, "error": "Fecha/hora inválida."}, status=400)
 
     if timezone.is_naive(inicio):
         inicio = timezone.make_aware(inicio)
+
+    if inicio < timezone.now():
+        logger.warning(f"SECURITY: Intento de consulta en fecha pasada: {inicio}")
+        return JsonResponse({"ok": False, "error": "La fecha y hora no pueden estar en el pasado."}, status=400)
 
     fin = inicio + timedelta(hours=2)
     mesas = Mesa.objects.filter(activa=True, capacidad__gte=num_personas).order_by("id")
