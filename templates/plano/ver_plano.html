@@ -12,7 +12,12 @@
 </style>
 
 <div class="container mt-4">
-    <h2>Distribución del Local</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Distribución del Local</h2>
+        <button type="button" class="btn btn-success btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#modalCrearMesa">
+            + Añadir Mesa
+        </button>
+    </div>
     <div class="border rounded bg-white p-2 shadow-sm">
         <svg id="planoSVG" viewBox="0 0 1000 600" width="100%" style="max-height: 650px; touch-action: none;">
             
@@ -21,6 +26,7 @@
             {% for mesa in mesas %}
             <g class="mesa-elemento" 
                data-id="{{ mesa.id }}" 
+               data-nombre="{{ mesa.nombre_interno }}"
                data-capacidad="{{ mesa.capacidad }}"
                data-estado="{{ mesa.estado_visual }}"
                transform="translate({{ mesa.x }}, {{ mesa.y }})" 
@@ -105,6 +111,66 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Crear Mesa -->
+<div class="modal fade" id="modalCrearMesa" tabindex="-1" aria-labelledby="modalCrearMesaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCrearMesaLabel">Añadir Nueva Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCrearMesa">
+                    <div class="mb-3">
+                        <label for="inputNuevoNombre" class="form-label">Nombre / Identificador</label>
+                        <input type="text" class="form-control" id="inputNuevoNombre" required placeholder="Ej: Mesa 9">
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputNuevaCapacidad" class="form-label">Capacidad (Sillas)</label>
+                        <input type="number" class="form-control" id="inputNuevaCapacidad" min="1" value="4" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarNuevaMesa" class="btn btn-success">Crear Mesa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Modificar / Eliminar Mesa Existente -->
+<div class="modal fade" id="modalGestionMesa" tabindex="-1" aria-labelledby="modalGestionMesaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalGestionMesaLabel">Modificar o Eliminar Mesa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formModificarMesa">
+                    <input type="hidden" id="inputModId">
+                    <div class="mb-3">
+                        <label for="inputModNombre" class="form-label">Nombre / Identificador</label>
+                        <input type="text" class="form-control" id="inputModNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputModCapacidad" class="form-label">Capacidad (Sillas)</label>
+                        <input type="number" class="form-control" id="inputModCapacidad" min="1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" id="btnEliminarMesa" class="btn btn-danger btn-sm">Eliminar Mesa</button>
+                <div>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnGuardarModMesa" class="btn btn-primary btn-sm">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -125,6 +191,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const modalOcupadaEl = document.getElementById('modalOcupada');
     const modalOcupada = new bootstrap.Modal(modalOcupadaEl);
+
+    const modalCrearMesaEl = document.getElementById('modalCrearMesa');
+    const modalCrearMesa = new bootstrap.Modal(modalCrearMesaEl);
+
+    const modalGestionMesaEl = document.getElementById('modalGestionMesa');
+    const modalGestionMesa = new bootstrap.Modal(modalGestionMesaEl);
 
     document.querySelectorAll(".mesa-elemento").forEach(mesaG => {
         mesaG.addEventListener("pointerdown", (e) => {
@@ -194,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        mesaG.addEventListener("click", async () => {
+        mesaG.addEventListener("click", async (e) => {
             if (hasMoved) return;
             const mesaId = mesaG.dataset.id;
             const estadoMesa = mesaG.dataset.estado;
@@ -222,68 +294,92 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
             
-            try {
-                const response = await fetch("{% url 'plano:bloquear_mesa_temporal' %}", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-                    body: JSON.stringify({ mesa_id: mesaId })
-                });
-                const data = await response.json();
-
-                if (response.ok && data.ok) {
-                    mesaBloqueadaActual = mesaId;
-                    document.querySelectorAll(".mesa-figura").forEach(f => {
-                        f.classList.remove("fill-success");
-                        if (!f.classList.contains("fill-danger")) f.classList.add("fill-primary");
-                    });
-                    const figura = mesaG.querySelector(".mesa-figura");
-                    figura.classList.remove("fill-primary");
-                    figura.classList.add("fill-success");
-                    
-                    document.getElementById("inputMesaId").value = mesaId;
-                    document.getElementById("inputCliente").value = "";
-                    document.getElementById("inputComensales").value = "";
-                    document.getElementById("inputComensales").max = mesaG.dataset.capacidad;
-                    modalReserva.show();
-                } else {
-                    alert(data.error || "No se pudo bloquear la mesa.");
-                }
-            } catch (error) {
-                console.error("Error de red:", error);
-            }
+            // Abre directamente el modal de modificación/eliminación al hacer clic en cualquier mesa libre
+            document.getElementById("inputModId").value = mesaId;
+            document.getElementById("inputModNombre").value = mesaG.dataset.nombre;
+            document.getElementById("inputModCapacidad").value = mesaG.dataset.capacidad;
+            modalGestionMesa.show();
         });
     });
 
-    document.getElementById("btnGuardarReserva").addEventListener("click", async () => {
-        const mesaId = document.getElementById("inputMesaId").value;
-        const cliente = document.getElementById("inputCliente").value.trim();
-        const comensales = parseInt(document.getElementById("inputComensales").value);
-        const maxCapacidad = parseInt(document.getElementById("inputComensales").max);
+    document.getElementById("btnGuardarNuevaMesa").addEventListener("click", async () => {
+        const nombre = document.getElementById("inputNuevoNombre").value.trim();
+        const capacidad = parseInt(document.getElementById("inputNuevaCapacidad").value);
 
-        if (!cliente) {
-            alert("El nombre del cliente es obligatorio.");
+        if (!nombre) {
+            alert("El nombre de la mesa es obligatorio.");
             return;
         }
-
-        if (isNaN(comensales) || comensales < 1 || comensales > maxCapacidad) {
-            alert(`El número de comensales debe estar entre 1 y ${maxCapacidad}.`);
+        if (isNaN(capacidad) || capacidad < 1) {
+            alert("La capacidad debe ser al menos de 1 comensal.");
             return;
         }
 
         try {
-            const response = await fetch("{% url 'plano:crear_reserva' %}", {
+            const response = await fetch("{% url 'plano:crear_mesa' %}", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-                body: JSON.stringify({ mesa_id: mesaId, cliente: cliente, comensales: comensales })
+                body: JSON.stringify({ nombre: nombre, capacidad: capacidad, x: 100, y: 100 })
             });
             const data = await response.json();
 
             if (response.ok && data.ok) {
-                mesaBloqueadaActual = null;
-                modalReserva.hide();
+                modalCrearMesa.hide();
                 window.location.reload();
             } else {
-                alert(data.error || "No se pudo completar la reserva.");
+                alert(data.error || "No se pudo crear la mesa.");
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
+        }
+    });
+
+    document.getElementById("btnGuardarModMesa").addEventListener("click", async () => {
+        const mesaId = document.getElementById("inputModId").value;
+        const nombre = document.getElementById("inputModNombre").value.trim();
+        const capacidad = parseInt(document.getElementById("inputModCapacidad").value);
+
+        if (!nombre) {
+            alert("El nombre es obligatorio.");
+            return;
+        }
+
+        try {
+            const response = await fetch("{% url 'plano:modificar_mesa' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ mesa_id: mesaId, nombre: nombre, capacidad: capacidad })
+            });
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                modalGestionMesa.hide();
+                window.location.reload();
+            } else {
+                alert(data.error || "No se pudo modificar la mesa.");
+            }
+        } catch (error) {
+            console.error("Error de red:", error);
+        }
+    });
+
+    document.getElementById("btnEliminarMesa").addEventListener("click", async () => {
+        const mesaId = document.getElementById("inputModId").value;
+        if (!confirm("¿Estás seguro de eliminar esta mesa?")) return;
+
+        try {
+            const response = await fetch("{% url 'plano:eliminar_mesa' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ mesa_id: mesaId })
+            });
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                modalGestionMesa.hide();
+                window.location.reload();
+            } else {
+                alert(data.error || "No se pudo eliminar la mesa.");
             }
         } catch (error) {
             console.error("Error de red:", error);
@@ -313,30 +409,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    modalReservaEl.addEventListener('hidden.bs.modal', async () => {
-        if (mesaBloqueadaActual) {
-            try {
-                await fetch("{% url 'plano:liberar_bloqueo_temporal' %}", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ mesa_id: mesaBloqueadaActual })
-                });
-            } catch (err) {}
-            mesaBloqueadaActual = null;
-            window.location.reload();
-        }
-    });
-
-    window.addEventListener('pagehide', () => {
-        if (mesaBloqueadaActual) {
-            const data = JSON.stringify({ mesa_id: mesaBloqueadaActual });
-            const blob = new Blob([data], { type: 'application/json' });
-            navigator.sendBeacon("{% url 'plano:liberar_bloqueo_temporal' %}", blob);
-        }
-    });
-
     setInterval(async () => {
-        if (mesaActiva || modalReservaEl.classList.contains('show') || modalOcupadaEl.classList.contains('show')) return;
+        if (mesaActiva || modalGestionMesaEl.classList.contains('show') || modalOcupadaEl.classList.contains('show') || modalCrearMesaEl.classList.contains('show')) return;
 
         try {
             const response = await fetch("{% url 'plano:estado_mesas' %}");

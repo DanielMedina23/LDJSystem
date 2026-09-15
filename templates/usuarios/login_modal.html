@@ -1,0 +1,60 @@
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-3 bg-dark text-white">
+
+            <!-- Encabezado del modal -->
+            <div class="modal-header border-secondary">
+                <div>
+                    <h2 class="modal-title fs-4 fw-bold" id="loginModalLabel">
+                        Iniciar sesión
+                    </h2>
+                    <p class="text-white-50 mb-0">
+                        Accede a tu cuenta de LDJSystem
+                    </p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <!-- Contenido principal -->
+            <div class="modal-body p-4">
+
+                <!-- Formulario de inicio de sesión -->
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+
+                    <!-- Usuario -->
+                    <div class="mb-3">
+                        <label for="modal-username" class="form-label fw-semibold">Usuario</label>
+                        <input type="text" class="form-control" id="modal-username" name="username" placeholder="Ingresa tu usuario" required>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="mb-4">
+                        <label for="modal-password" class="form-label fw-semibold">Contraseña</label>
+                        <input type="password" class="form-control" id="modal-password" name="password" placeholder="Ingresa tu contraseña" required>
+                    </div>
+
+                    <!-- Acción principal -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success fw-semibold">
+                            Iniciar sesión
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- Pie del modal -->
+            <div class="modal-footer border-secondary justify-content-center pt-0">
+                <div class="text-center">
+                    <p class="text-secondary mb-2">¿Todavía no tienes una cuenta?</p>
+                    <a href="{% url 'agregar_cliente' %}" class="btn btn-outline-success btn-sm">
+                        Crear cuenta
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
