@@ -10,7 +10,7 @@ def administrador_required(view_func):
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
 
-        if request.user.is_superuser or request.user.groups.filter(name='Administrador').exists():
+        if request.user.is_superuser or request.user.groups.filter(name='Jefes').exists():
             return view_func(request, *args, **kwargs)
 
         return redirect('inicio')
@@ -25,7 +25,7 @@ def personal_required(view_func):
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path())
 
-        if request.user.is_superuser or request.user.groups.filter(name__in=['Administrador', 'Empleado']).exists():
+        if request.user.is_superuser or request.user.groups.filter(name__in=['Jefes', 'Trabajadores']).exists():
             return view_func(request, *args, **kwargs)
 
         return redirect('inicio')

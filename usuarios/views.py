@@ -57,7 +57,7 @@ def crear_trabajador(request):
     # solo puede crear empleados
     if not request.user.is_superuser:
         formulario.fields['grupo'].choices = [
-            ('Trabajador', 'Trabajador')
+            ('trabajadores', 'Trabajador')
         ]
 
     if request.method == 'POST' and formulario.is_valid():
@@ -103,7 +103,7 @@ def editar_trabajador(request, id):
 
         if not request.user.is_superuser:
             formulario.fields['grupo'].choices = [
-                ('Empleado', 'Empleado')
+                ('Trabajadores', 'Trabajadores')
             ]
 
         if formulario.is_valid():
@@ -134,7 +134,7 @@ def editar_trabajador(request, id):
 
         if not request.user.is_superuser:
             formulario.fields['grupo'].choices = [
-                ('Empleado', 'Empleado')
+                ('Trabajadores', 'Trabajadores')
             ]
 
     return render(

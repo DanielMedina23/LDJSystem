@@ -116,7 +116,6 @@ class EditarPerfilForm(forms.ModelForm):
             'username',
             'email',
             'telefono',
-            'dni',
         ]
 
         widgets = {

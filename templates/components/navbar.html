@@ -28,7 +28,7 @@
             <a class="nav-link text-white fw-semibold" href="{% url 'crear_reserva' %}">Reservar Mesa</a>
           </li>
 
-          <!-- Acceso a Trabajadores (Superusuario o grupo Administrador) -->
+          <!-- Acceso a Trabajadores (Superusuario o grupo Jefes) -->
           {% if request.user.is_authenticated %}
           {% if request.user.is_superuser %}
           <li class="nav-item">
@@ -36,7 +36,7 @@
           </li>
           {% else %}
           {% for grupo in request.user.groups.all %}
-          {% if grupo.name == 'Administrador' %}
+          {% if grupo.name == 'Jefes' %}
           <li class="nav-item">
             <a class="nav-link text-white fw-semibold" href="{% url 'ver_trabajadores' %}">Trabajadores</a>
           </li>
@@ -45,7 +45,7 @@
           {% endif %}
           {% endif %}
 
-          <!-- Opciones exclusivas para Empleados / Personal autorizado -->
+          <!-- Opciones exclusivas para Trabajadores / Personal autorizado -->
           {% if request.user.is_authenticated and request.user.is_staff %}
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle text-info fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
