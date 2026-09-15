@@ -63,11 +63,20 @@ def ver_plano(request):
     mesas = Mesa.objects.filter(activa=True).order_by("id")
     bloqueos = {b.mesa_id: b.session_key for b in MesaBloqueo.objects.all()}
     
+    ahora = timezone.now()
+    estados_ocupantes = ['activa', 'pendiente_confirmacion', 'confirmada', 'en_curso']
+
     for mesa in mesas:
         if mesa.id in bloqueos:
             mesa.estado_visual = "seleccionada" if bloqueos[mesa.id] == session_key else "ocupada"
         else:
-            mesa.estado_visual = "libre"
+            tiene_reserva_vigente = Reserva.objects.filter(
+                mesa_id=mesa.id,
+                estado__in=estados_ocupantes,
+                fecha_hora_inicio__lte=ahora,
+                fecha_hora_fin__gte=ahora
+            ).exists()
+            mesa.estado_visual = "ocupada" if tiene_reserva_vigente else "libre"
 
     return render(request, "plano/ver_plano.html", {
         "mesas": mesas,
@@ -241,14 +250,23 @@ def obtener_estado_mesas(request):
     mesas = Mesa.objects.filter(activa=True)
     bloqueos = {b.mesa_id: b.session_key for b in MesaBloqueo.objects.all()}
     
+    ahora = timezone.now()
+    estados_ocupantes = ['activa', 'pendiente_confirmacion', 'confirmada', 'en_curso']
+    
     datos_mesas = []
     for mesa in mesas:
         estado = "libre"
         if mesa.id in bloqueos:
             estado = "seleccionada" if bloqueos[mesa.id] == session_key else "ocupada"
         else:
-            tiene_reserva = Reserva.objects.filter(mesa_id=mesa.id, estado='activa').exists()
-            if tiene_reserva:
+            tiene_reserva_vigente = Reserva.objects.filter(
+                mesa_id=mesa.id,
+                estado__in=estados_ocupantes,
+                fecha_hora_inicio__lte=ahora,
+                fecha_hora_fin__gte=ahora
+            ).exists()
+            
+            if tiene_reserva_vigente:
                 estado = "ocupada"
         datos_mesas.append({"id": mesa.id, "estado": estado})
 

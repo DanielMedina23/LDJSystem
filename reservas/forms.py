@@ -5,6 +5,16 @@ from .models import Reserva
 
 
 class ReservaForm(forms.ModelForm):
+    # Restricción estricta de comensales para evitar números negativos o cero
+    num_personas = forms.IntegerField(
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+        error_messages={
+            'min_value': 'El número de comensales debe ser al menos 1.',
+            'required': 'Este campo es obligatorio.'
+        }
+    )
+
     # Casillas de consentimiento obligatorias para cumplimiento legal (RGPD/LOPD)
     acepta_privacidad = forms.BooleanField(
         required=True,

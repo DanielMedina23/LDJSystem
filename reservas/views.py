@@ -20,16 +20,10 @@ from negocio.models import Mesa
 from plano.models import MesaBloqueo
 from usuarios.decorators import personal_required
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from reservas.models import Reserva
 
 logger = logging.getLogger(__name__)
 
 def enviar_correo_asincrono(asunto, mensaje, destinatario):
-    """
-    Ejecuta el envío de correos en un hilo secundario para evitar 
-    bloquear la respuesta HTTP si el servidor SMTP presenta latencia.
-    """
     try:
         send_mail(asunto, mensaje, os.getenv("EMAIL_HOST_USER"), [destinatario], fail_silently=False)
     except Exception as e:
@@ -37,10 +31,6 @@ def enviar_correo_asincrono(asunto, mensaje, destinatario):
 
 
 def crear_reserva(request):
-    """
-    Renderiza el plano interactivo y procesa la creación de nuevas reservas.
-    Incluye protección contra condiciones de carrera mediante select_for_update.
-    """
     MesaBloqueo.purgar_expirados()
 
     if not request.session.session_key:
@@ -50,21 +40,13 @@ def crear_reserva(request):
     mesas = Mesa.objects.filter(activa=True).order_by("id")
     bloqueos = {bloqueo.mesa_id: bloqueo.session_key for bloqueo in MesaBloqueo.objects.all()}
 
-    estados_ocupantes = ['activa', 'pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
-
-    # OPTIMIZACIÓN RENDIMIENTO: Prevención de consultas N+1 en la renderización del plano.
-    # Se extraen todos los IDs ocupados hoy en una sola consulta a PostgreSQL.
-    hoy = timezone.now().date()
-    mesas_ocupadas_ids = set(Reserva.objects.filter(
-        estado__in=estados_ocupantes,
-        fecha_hora_inicio__date__gte=hoy
-    ).values_list('mesa_id', flat=True))
-
+    # ANTI-PATRÓN CORREGIDO: El plano se inicializa limpio (todas libres) 
+    # El JavaScript se encargará de evaluarlas por AJAX una vez el usuario ponga la fecha.
     for mesa in mesas:
         if mesa.id in bloqueos:
             mesa.estado_visual = "seleccionada" if bloqueos[mesa.id] == session_key else "ocupada"
         else:
-            mesa.estado_visual = "ocupada" if mesa.id in mesas_ocupadas_ids else "libre"
+            mesa.estado_visual = "libre"
 
     if request.method == 'POST':
         form = ReservaForm(request.POST)
@@ -77,8 +59,11 @@ def crear_reserva(request):
             fecha_hora_inicio = form.cleaned_data['fecha_hora_inicio']
             fecha_hora_fin = fecha_hora_inicio + timedelta(hours=2)
 
+            # Variables movidas aquí adentro para la validación de guardado
+            estados_ocupantes = ['activa', 'pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
+            ahora = timezone.now()
+
             with transaction.atomic():
-                # BLOQUEO TRANSACCIONAL: Evita solapamientos si dos usuarios eligen la misma mesa al mismo milisegundo.
                 mesa_seleccionada = Mesa.objects.select_for_update().filter(id=mesa_id, activa=True).first()
 
                 if mesa_seleccionada is None:
@@ -86,18 +71,20 @@ def crear_reserva(request):
                 elif mesa_seleccionada.capacidad < num_personas:
                     form.add_error(None, "La mesa seleccionada no tiene capacidad suficiente.")
                 else:
+                    # VALIDACIÓN DE SOLAPAMIENTO CORREGIDA
                     existe_solapamiento = Reserva.objects.filter(
                         mesa=mesa_seleccionada,
                         estado__in=estados_ocupantes,
                         fecha_hora_inicio__lt=fecha_hora_fin,
-                        fecha_hora_fin__gt=fecha_hora_inicio
-                    ).exists()
+                        fecha_hora_fin__gt=ahora, # Verifica que la reserva no haya caducado ya
+                    ).filter(fecha_hora_fin__gt=fecha_hora_inicio).exists() # Encadenamos para evitar doble kwarg
 
                     if existe_solapamiento:
                         form.add_error(None, "La mesa seleccionada ya no está disponible para ese horario.")
                     else:
                         reserva = form.save(commit=False)
                         reserva.mesa = mesa_seleccionada
+                        reserva.fecha_hora_fin = fecha_hora_fin
                         if request.user.is_authenticated:
                             reserva.usuario_creador = request.user
                             
@@ -121,10 +108,7 @@ def crear_reserva(request):
                             )
                             threading.Thread(target=enviar_correo_asincrono, args=(asunto, mensaje, reserva.correo_cliente)).start()
 
-                        messages.success(
-                            request, 
-                            "Has realizado la reserva correctamente, para confirmarla te enviaremos un correo electrónico donde podrás asegurar tu mesa."
-                        )
+                        messages.success(request, "Has realizado la reserva correctamente.")
                         return redirect('inicio')
     else:
         form = ReservaForm()
@@ -133,10 +117,6 @@ def crear_reserva(request):
 
 
 def confirmar_reserva_por_token(request, token):
-    """
-    Confirma una reserva usando el enlace enviado al correo del cliente.
-    Valida la caducidad del token y previene confirmaciones sobre reservas ya canceladas o finalizadas.
-    """
     reserva = get_object_or_404(Reserva, token_confirmacion=token)
 
     if reserva.expiracion_confirmacion and timezone.now() > reserva.expiracion_confirmacion:
@@ -185,11 +165,7 @@ def ver_reservas(request):
         reservas = reservas.filter(estado=estado_seleccionado)
         
     if solo_expiradas:
-        # DELEGACIÓN A BASE DE DATOS: Prohibido cargar en RAM listas enteras para filtrar.
-        reservas = reservas.filter(
-            estado='activa', 
-            expiracion_confirmacion__lt=timezone.now()
-        )
+        reservas = reservas.filter(estado='activa', expiracion_confirmacion__lt=timezone.now())
 
     total_reservas = reservas.count()
 
@@ -213,28 +189,24 @@ def detalle_reserva(request, pk):
 @personal_required
 def editar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
+    ahora = timezone.now()
 
     if request.method == 'POST':
         form = ReservaForm(request.POST, instance=reserva)
         
         if form.is_valid():
-            # FALLBACK: Si el POST no trae mesa (ej. campo disabled en HTML), usamos la que ya existe en BD
             mesa = form.cleaned_data.get('mesa') or reserva.mesa
             num_personas = form.cleaned_data.get('num_personas', reserva.num_personas)
             fecha_hora_inicio = form.cleaned_data.get('fecha_hora_inicio', reserva.fecha_hora_inicio)
             fecha_hora_fin = fecha_hora_inicio + timedelta(hours=2)
 
             estados_bloqueantes = ['activa', 'pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
-            
-            # Recuperamos el nuevo estado si el form lo permite, sino mantenemos el actual
             nuevo_estado = request.POST.get('estado', reserva.estado)
 
-            # Preparamos el objeto sin impactar en BD
             reserva_obj = form.save(commit=False)
             reserva_obj.estado = nuevo_estado
 
             with transaction.atomic():
-                # BYPASS LÓGICO: Si la reserva se cancela o finaliza, no comprobamos colisiones ni bloqueamos mesas.
                 if nuevo_estado not in estados_bloqueantes:
                     reserva_obj.mesa = mesa
                     reserva_obj.fecha_hora_fin = fecha_hora_fin
@@ -242,18 +214,18 @@ def editar_reserva(request, pk):
                     messages.success(request, f"¡La reserva #{reserva_obj.id} se ha actualizado correctamente (Sin ocupar mesa)!")
                     return redirect('detalle_reserva', pk=reserva_obj.pk)
 
-                # VALIDACIÓN ESTRICTA: Solo se ejecuta si la reserva va a ocupar físicamente una mesa
                 mesa_bloqueada = Mesa.objects.select_for_update().get(pk=mesa.pk)
 
                 if mesa_bloqueada.capacidad < num_personas:
                     form.add_error('mesa', 'La mesa seleccionada no tiene capacidad suficiente.')
                 else:
+                    # VALIDACIÓN DE SOLAPAMIENTO CORREGIDA
                     existe_solapamiento = Reserva.objects.filter(
                         mesa=mesa_bloqueada,
                         estado__in=estados_bloqueantes,
                         fecha_hora_inicio__lt=fecha_hora_fin,
-                        fecha_hora_fin__gt=fecha_hora_inicio
-                    ).exclude(pk=reserva.pk).exists()
+                        fecha_hora_fin__gt=ahora
+                    ).filter(fecha_hora_fin__gt=fecha_hora_inicio).exclude(pk=reserva.pk).exists()
 
                     if existe_solapamiento:
                         form.add_error('mesa', 'La mesa seleccionada coincide en horarios con otra reserva existente.')
@@ -286,9 +258,6 @@ def eliminar_reserva(request, pk):
 
 @personal_required
 def confirmar_reserva(request, pk):
-    """
-    Fuerza la confirmación manual de una reserva desde el dashboard del personal.
-    """
     reserva = get_object_or_404(Reserva, pk=pk)
 
     if request.method == 'POST':
@@ -311,11 +280,6 @@ def confirmar_reserva(request, pk):
 
 @personal_required
 def finalizar_reserva(request, pk):
-    """
-    Concluye el ciclo de vida de la reserva, liberando la mesa.
-    Permite cerrar reservas activas, confirmadas o en curso sin exigir estados intermedios rígidos,
-    activando de forma asíncrona el envío del correo de reseña si existe contacto.
-    """
     reserva = get_object_or_404(Reserva, pk=pk)
 
     if request.method == 'POST':
@@ -333,9 +297,8 @@ def finalizar_reserva(request, pk):
             mensaje = (
                 f"Hola {reserva.nombre_cliente},\n\n"
                 f"Esperamos que tu estancia en el bar haya sido de tu agrado.\n\n"
-                f"¿Podrías valorarnos en nuestro perfil de Google? Nos ayudaría muchísimo a seguir mejorando:\n"
+                f"¿Podrías valorarnos en nuestro perfil de Google?\n"
                 f"{getattr(settings, 'GOOGLE_MAPS_REVIEW_URL', 'Enlace no configurado')}\n\n"
-                f"¡Te esperamos pronto!"
             )
             threading.Thread(target=enviar_correo_asincrono, args=(asunto, mensaje, reserva.correo_cliente)).start()
 
@@ -357,6 +320,8 @@ def disponibilidad_mesas(request):
 
     try:
         num_personas = int(num_personas)
+        if num_personas < 1:
+            return JsonResponse({"ok": False, "error": "Número de personas inválido."}, status=400)
     except (TypeError, ValueError):
         return JsonResponse({"ok": False, "error": "Número de personas inválido."}, status=400)
 
@@ -370,13 +335,13 @@ def disponibilidad_mesas(request):
     fin = inicio + timedelta(hours=2)
     mesas = Mesa.objects.filter(activa=True, capacidad__gte=num_personas).order_by("id")
     estados_bloqueantes = ['activa', 'pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
+    ahora = timezone.now()
 
-    # OPTIMIZACIÓN N+1: Obtenemos el conjunto de IDs ocupados en 1 consulta para iterar en memoria RAM O(1).
     reservas_solapadas = Reserva.objects.filter(
         estado__in=estados_bloqueantes,
         fecha_hora_inicio__lt=fin,
-        fecha_hora_fin__gt=inicio
-    )
+        fecha_hora_fin__gt=ahora
+    ).filter(fecha_hora_fin__gt=inicio)
     
     if reserva_id:
         reservas_solapadas = reservas_solapadas.exclude(pk=reserva_id)
@@ -385,4 +350,3 @@ def disponibilidad_mesas(request):
     disponibles = [mesa.id for mesa in mesas if mesa.id not in mesas_ocupadas_ids]
 
     return JsonResponse({"ok": True, "mesas_disponibles": disponibles})
-

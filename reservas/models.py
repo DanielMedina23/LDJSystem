@@ -48,6 +48,14 @@ class Reserva(models.Model):
     expiracion_confirmacion = models.DateTimeField(blank=True, null=True)
     
     objects                 = ReservaQuerySet.as_manager()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(num_personas__gte=1),
+                name='num_personas_minimo_uno'
+            )
+        ]
     
     def save(self, *args, **kwargs):
         if self.fecha_hora_inicio and not self.fecha_hora_fin:

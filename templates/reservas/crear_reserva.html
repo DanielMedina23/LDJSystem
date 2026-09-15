@@ -44,6 +44,8 @@
                             {{ form.num_personas.errors|striptags }}
                         </div>
                         {% endif %}
+                        <!-- Contenedor dinámico para avisos de JS -->
+                        <div id="errorNumPersonas" class="text-warning small mt-1" style="display: none;"></div>
                     </div>
 
                     <!-- 2. SELECCIÓN ESPACIAL: Feedback del plano -->
