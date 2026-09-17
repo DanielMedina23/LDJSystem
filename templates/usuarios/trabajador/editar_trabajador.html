@@ -5,21 +5,42 @@ Editar trabajador
 {% endblock %}
 
 {% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <h2 class="mb-4 fw-bold text-center">Editar trabajador</h2>
 
-<h1>Editar trabajador</h1>
+                    <form method="POST">
+                        {% csrf_token %}
 
-<form method="POST">
-    {% csrf_token %}
+                        <!-- Renderizado personalizado con clases Bootstrap -->
+                        {% for field in formulario %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
 
-    {{ formulario.as_p }}
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'ver_trabajadores' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
+                        </div>
+                    </form>
 
-    <button type="submit">
-        Guardar cambios
-    </button>
-</form>
+                </div>
+            </div>
 
-<a href="{% url 'ver_trabajadores' %}">
-    Cancelar
-</a>
-
+        </div>
+    </div>
+</div>
 {% endblock %}
