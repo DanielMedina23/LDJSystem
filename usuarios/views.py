@@ -22,7 +22,7 @@ def agregar_usuario(request):
 
             # Busco el grupo "Cliente" creado previamente
             # desde el panel de administración de Django
-            grupo_cliente = Group.objects.get(name='Cliente')
+            grupo_cliente, _ = Group.objects.get_or_create(name='Cliente')
 
             # Agrego el usuario recién registrado al grupo Cliente
             usuario.groups.add(grupo_cliente)
@@ -57,7 +57,7 @@ def crear_trabajador(request):
     # solo puede crear empleados
     if not request.user.is_superuser:
         formulario.fields['grupo'].choices = [
-            ('trabajadores', 'Trabajador')
+            ('Trabajadores', 'Trabajador')
         ]
 
     if request.method == 'POST' and formulario.is_valid():
@@ -206,6 +206,8 @@ def iniciar_sesion(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        # Capturamos el parámetro next inyectado por el decorador o el formulario ocuto
+        next_url = request.POST.get('next') or request.GET.get('next')
 
         usuario = authenticate(
             request,
@@ -214,18 +216,17 @@ def iniciar_sesion(request):
         )
 
         if usuario is not None:
-            # Inicio la sesión del usuario
             login(request, usuario)
-
-            # Redirección temporal para comprobar el login
+            
+            # Si hay una URL pendiente, redirigimos ahí para que el decorador evalúe el rol
+            if next_url:
+                return redirect(next_url)
+                
             return redirect('inicio')
-
         else:
-            # Si authenticate devuelve None, las credenciales no son válidas
             error = 'Usuario o contraseña incorrectos'
 
     return render(request, 'usuarios/login.html', {'error': error})
-
 #Cerrar sesion
 @login_required
 def cerrar_sesion(request):

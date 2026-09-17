@@ -18,7 +18,7 @@ from .forms import ReservaForm
 from .models import Reserva
 from negocio.models import Mesa
 from plano.models import MesaBloqueo
-from usuarios.decorators import personal_required
+from usuarios.decorators import personal_required, administrador_required
 from django.core.management.base import BaseCommand
 from .decorators import rate_limit
 
@@ -41,8 +41,6 @@ def crear_reserva(request):
     mesas = Mesa.objects.filter(activa=True).order_by("id")
     bloqueos = {bloqueo.mesa_id: bloqueo.session_key for bloqueo in MesaBloqueo.objects.all()}
 
-    # ANTI-PATRÓN CORREGIDO: El plano se inicializa limpio (todas libres) 
-    # El JavaScript se encargará de evaluarlas por AJAX una vez el usuario ponga la fecha.
     for mesa in mesas:
         if mesa.id in bloqueos:
             mesa.estado_visual = "seleccionada" if bloqueos[mesa.id] == session_key else "ocupada"
@@ -60,7 +58,6 @@ def crear_reserva(request):
             fecha_hora_inicio = form.cleaned_data['fecha_hora_inicio']
             fecha_hora_fin = fecha_hora_inicio + timedelta(hours=2)
 
-            # Variables movidas aquí adentro para la validación de guardado
             estados_ocupantes = ['activa', 'pendiente_confirmacion', 'pendiente_revision', 'confirmada', 'en_curso']
             ahora = timezone.now()
 
@@ -68,17 +65,16 @@ def crear_reserva(request):
                 mesa_seleccionada = Mesa.objects.select_for_update().filter(id=mesa_id, activa=True).first()
 
                 if mesa_seleccionada is None:
-                    form.add_error(None, "La mesa seleccionada no existe o no está activa.")
+                    form.add_error(None, "La mesa seleccionada no existe o não está activa.")
                 elif mesa_seleccionada.capacidad < num_personas:
                     form.add_error(None, "La mesa seleccionada no tiene capacidad suficiente.")
                 else:
-                    # VALIDACIÓN DE SOLAPAMIENTO CORREGIDA
                     existe_solapamiento = Reserva.objects.filter(
                         mesa=mesa_seleccionada,
                         estado__in=estados_ocupantes,
                         fecha_hora_inicio__lt=fecha_hora_fin,
-                        fecha_hora_fin__gt=ahora, # Verifica que la reserva no haya caducado ya
-                    ).filter(fecha_hora_fin__gt=fecha_hora_inicio).exists() # Encadenamos para evitar doble kwarg
+                        fecha_hora_fin__gt=ahora,
+                    ).filter(fecha_hora_fin__gt=fecha_hora_inicio).exists()
 
                     if existe_solapamiento:
                         form.add_error(None, "La mesa seleccionada ya no está disponible para ese horario.")
@@ -152,7 +148,8 @@ def ver_reservas(request):
     solo_expiradas = request.GET.get('expiradas')
     q = request.GET.get('q', '').strip()
     
-    reservas = Reserva.objects.all().order_by('-fecha_hora_inicio')
+    # Optimización: precarga de relaciones para evitar N+1 en ORM
+    reservas = Reserva.objects.select_related('mesa', 'usuario_creador').all().order_by('-fecha_hora_inicio')
     
     if q:
         reservas = reservas.filter(
@@ -179,7 +176,6 @@ def ver_reservas(request):
         'q': q,
         'total_reservas': total_reservas,
     })
-
 
 @personal_required
 def detalle_reserva(request, pk):
@@ -220,7 +216,6 @@ def editar_reserva(request, pk):
                 if mesa_bloqueada.capacidad < num_personas:
                     form.add_error('mesa', 'La mesa seleccionada no tiene capacidad suficiente.')
                 else:
-                    # VALIDACIÓN DE SOLAPAMIENTO CORREGIDA
                     existe_solapamiento = Reserva.objects.filter(
                         mesa=mesa_bloqueada,
                         estado__in=estados_bloqueantes,
@@ -244,7 +239,7 @@ def editar_reserva(request, pk):
     return render(request, 'reservas/editar_reserva.html', {'form': form, 'reserva': reserva, 'mesas': mesas})
 
 
-@personal_required
+@administrador_required
 def eliminar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     
@@ -312,10 +307,6 @@ def finalizar_reserva(request, pk):
 @require_GET
 @rate_limit(max_requests=45, window_seconds=60)
 def disponibilidad_mesas(request):
-    """
-    Endpoint JSON que retorna las IDs de las mesas disponibles dada una fecha y número de comensales.
-    Excluye la propia reserva si se está ejecutando desde el contexto de edición.
-    """
     fecha = request.GET.get("fecha_hora_inicio")
     num_personas = request.GET.get("num_personas")
     reserva_id = request.GET.get("reserva_id")

@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from negocio.models import Mesa
 from reservas.models import Reserva
 from .models import MesaBloqueo
+from usuarios.decorators import administrador_required
 
 def _es_jefe_o_trabajador(user):
     if not user.is_authenticated:
@@ -23,6 +24,9 @@ def _es_jefe_o_superadmin(user):
 
 @require_POST
 def bloquear_mesa_temporal(request):
+    if not _es_jefe_o_trabajador(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado."}, status=403)
+
     try:
         datos = json.loads(request.body)
         mesa_id = int(datos.get("mesa_id"))
@@ -52,8 +56,9 @@ def bloquear_mesa_temporal(request):
 
     return JsonResponse({"ok": True, "expires_at": expires_at.isoformat()})
 
-@login_required(login_url='/usuarios/login/')
-@user_passes_test(_es_jefe_o_trabajador, login_url='/usuarios/login/')
+from usuarios.decorators import administrador_required
+
+@administrador_required
 def ver_plano(request):
     MesaBloqueo.purgar_expirados()
     if not request.session.session_key:
@@ -167,6 +172,9 @@ def eliminar_mesa(request):
 
 @require_POST
 def crear_reserva(request):
+    if not _es_jefe_o_trabajador(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado."}, status=403)
+
     try:
         datos = json.loads(request.body)
         mesa_id = int(datos.get("mesa_id"))
@@ -194,6 +202,9 @@ def crear_reserva(request):
 @csrf_exempt
 @require_POST
 def liberar_bloqueo_temporal(request):
+    if not _es_jefe_o_trabajador(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado."}, status=403)
+
     try:
         datos = json.loads(request.body)
         mesa_id = int(datos.get("mesa_id"))
@@ -208,6 +219,9 @@ def liberar_bloqueo_temporal(request):
 
 @require_POST
 def obtener_detalle_reserva(request):
+    if not _es_jefe_o_trabajador(request.user):
+        return JsonResponse({"ok": False, "error": "No autorizado."}, status=403)
+
     try:
         datos = json.loads(request.body)
         mesa_id = int(datos.get("mesa_id"))

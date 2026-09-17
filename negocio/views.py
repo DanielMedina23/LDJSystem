@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from usuarios.decorators import personal_required
+from usuarios.decorators import personal_required, administrador_required
 from .models import Negocio, Mesa, Horario
 from .forms import NegocioForm, MesaForm, HorarioForm
 from django.db.models import ProtectedError
@@ -21,13 +21,16 @@ def ver_negocio(request):
     dias_ordenados = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
     horarios = [horarios_dict[dia] for dia in dias_ordenados if dia in horarios_dict]
     
+    es_jefe = request.user.is_authenticated and (request.user.is_superuser or request.user.groups.filter(name='Jefes').exists())
+    
     return render(request, 'negocio/ver_negocio.html', {
         'negocio': negocio,
-        'horarios': horarios
+        'horarios': horarios,
+        'es_jefe': es_jefe
     })
 
 
-@personal_required
+@administrador_required
 def crear_negocio(request):
     if request.method == 'POST':
         negocio_form = NegocioForm(request.POST)
@@ -40,7 +43,7 @@ def crear_negocio(request):
     return render(request, 'negocio/crear_negocio.html', {'negocio_form': negocio_form})
 
 
-@personal_required
+@administrador_required
 def editar_negocio(request, id):
     negocio = get_object_or_404(Negocio, id=id)
     if request.method == 'POST':
@@ -54,7 +57,7 @@ def editar_negocio(request, id):
     return render(request, 'negocio/editar_negocio.html', {'negocio_form': negocio_form})
 
 
-@personal_required
+@administrador_required
 def eliminar_negocio(request, id):
     negocio = get_object_or_404(Negocio, id=id)
     if request.method == 'POST':
@@ -68,7 +71,7 @@ def eliminar_negocio(request, id):
 # GESTIÓN DE MESAS
 # ==================================================
 
-@personal_required
+@administrador_required
 def crear_mesa(request):
     form = MesaForm(request.POST or None)
     if form.is_valid():
@@ -78,13 +81,13 @@ def crear_mesa(request):
     return render(request, "mesa/crear_mesa.html", {"form": form})
 
 
-@personal_required
+@administrador_required
 def ver_mesas(request):
     mesas = Mesa.objects.all().order_by("id")
     return render(request, "mesa/ver_mesas.html", {"mesas": mesas})
 
 
-@personal_required
+@administrador_required
 def editar_mesa(request, id):
     mesa = get_object_or_404(Mesa, id=id)
     form = MesaForm(request.POST or None, instance=mesa)
@@ -95,7 +98,7 @@ def editar_mesa(request, id):
     return render(request, "mesa/editar_mesa.html", {"form": form})
 
 
-@personal_required
+@administrador_required
 def eliminar_mesa(request, id):
     mesa = get_object_or_404(Mesa, id=id)
     
@@ -133,7 +136,7 @@ def ver_horarios(request):
     return render(request, 'horario/ver_horarios.html', {'horarios_semana': horarios_semana})
 
 
-@personal_required
+@administrador_required
 def crear_horario(request):
     form = HorarioForm(request.POST or None)
     if form.is_valid():
@@ -143,7 +146,7 @@ def crear_horario(request):
     return render(request, 'horario/crear_horario.html', {'form': form})
 
 
-@personal_required
+@administrador_required
 def editar_horario(request, id):
     horario = get_object_or_404(Horario, id=id)
     form = HorarioForm(request.POST or None, instance=horario)
@@ -154,7 +157,7 @@ def editar_horario(request, id):
     return render(request, 'horario/editar_horario.html', {'form': form})
 
 
-@personal_required
+@administrador_required
 def eliminar_horario(request, id):
     horario = get_object_or_404(Horario, id=id)
     if request.method == 'POST':

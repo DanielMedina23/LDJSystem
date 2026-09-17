@@ -1,4 +1,5 @@
 from functools import wraps
+from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.shortcuts import redirect
 
@@ -13,6 +14,8 @@ def administrador_required(view_func):
         if request.user.is_superuser or request.user.groups.filter(name='Jefes').exists():
             return view_func(request, *args, **kwargs)
 
+        print("DEBUG CRÍTICO: Bloqueando acceso e inyectando mensaje de error (Administrador).")
+        messages.error(request, "No cuentas con los permisos necesarios para realizar esta función.")
         return redirect('inicio')
 
     return validar_acceso
@@ -28,6 +31,8 @@ def personal_required(view_func):
         if request.user.is_superuser or request.user.groups.filter(name__in=['Jefes', 'Trabajadores']).exists():
             return view_func(request, *args, **kwargs)
 
+        print("DEBUG CRÍTICO: Bloqueando acceso e inyectando mensaje de error (Personal).")
+        messages.error(request, "No cuentas con los permisos necesarios para realizar esta función.")
         return redirect('inicio')
 
     return validar_acceso
