@@ -10,7 +10,7 @@
                         <i class="bi bi-check-circle-fill text-success display-1"></i>
                         <h2 class="card-title mt-3">¡Reserva Confirmada!</h2>
                         <p class="card-text text-muted mt-2">{{ mensaje }}</p>
-                        <a href="{% url 'plano:ver_plano' %}" class="btn btn-primary mt-3">Ir al plano del local</a>
+                        <a href="{% url 'inicio' %}" class="btn btn-success mt-3">Volver al inicio</a>
                     </div>
                 </div>
             {% else %}
@@ -19,7 +19,7 @@
                         <i class="bi bi-x-circle-fill text-danger display-1"></i>
                         <h2 class="card-title mt-3">Enlace no válido</h2>
                         <p class="card-text text-muted mt-2">{{ mensaje }}</p>
-                        <a href="{% url 'plano:ver_plano' %}" class="btn btn-secondary mt-3">Volver al plano</a>
+                        <a href="{% url 'inicio' %}" class="btn btn-secondary mt-3">Volver al inicio</a>
                     </div>
                 </div>
             {% endif %}
