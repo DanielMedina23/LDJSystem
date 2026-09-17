@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from usuarios.decorators import administrador_required
 from .forms import EditarTrabajadorForm, RegistroClienteForm, RegistroTrabajadorForm, EditarPerfilForm
 from .models import Usuario
+from django_ratelimit.decorators import ratelimit
 
 #CLIENTES
 # Registrar un nuevo cliente
@@ -200,6 +201,7 @@ def editar_perfil(request):
 
 #AUTENTICACION
 #Iniciar Sesion
+@ratelimit(key='ip', rate='5/m', block=True)
 def iniciar_sesion(request):
     error = None
 
