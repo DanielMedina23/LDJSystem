@@ -49,19 +49,38 @@
           {% endif %}
 
           <!-- Opciones exclusivas para Trabajadores / Personal autorizado -->
-          {% if request.user.is_authenticated and request.user.is_staff %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-info fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              Gestión Interna
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark">
-              <li><a class="dropdown-item" href="{% url 'ver_reservas' %}">Listado de Reservas</a></li>
-              <li><a class="dropdown-item" href="{% url 'ver_mesas' %}">Gestión de Mesas</a></li>
-              <li><a class="dropdown-item" href="{% url 'ver_horarios' %}">Gestión de Horarios</a></li>
-              <li><a class="dropdown-item" href="{% url 'plano:ver_plano' %}">Plano Interactivo</a></li>
-            </ul>
-          </li>
+          {% if request.user.is_authenticated %}
+            {% if request.user.is_staff or request.user.is_superuser %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-info fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Gestión Interna
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="{% url 'ver_reservas' %}">Listado de Reservas</a></li>
+                  <li><a class="dropdown-item" href="{% url 'ver_mesas' %}">Gestión de Mesas</a></li>
+                  <li><a class="dropdown-item" href="{% url 'ver_horarios' %}">Gestión de Horarios</a></li>
+                  <li><a class="dropdown-item" href="{% url 'plano:ver_plano' %}">Plano Interactivo</a></li>
+                </ul>
+              </li>
+            {% else %}
+              {% for grupo in request.user.groups.all %}
+                {% if grupo.name == 'Trabajadores' or grupo.name == 'Jefes' %}
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-info fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
+                      aria-expanded="false">
+                      Gestión Interna
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                      <li><a class="dropdown-item" href="{% url 'ver_reservas' %}">Listado de Reservas</a></li>
+                      <li><a class="dropdown-item" href="{% url 'ver_mesas' %}">Gestión de Mesas</a></li>
+                      <li><a class="dropdown-item" href="{% url 'ver_horarios' %}">Gestión de Horarios</a></li>
+                      <li><a class="dropdown-item" href="{% url 'plano:ver_plano' %}">Plano Interactivo</a></li>
+                    </ul>
+                  </li>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           {% endif %}
         </ul>
 
